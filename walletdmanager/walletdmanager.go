@@ -146,7 +146,10 @@ func SendTransaction(transferAddress string, transferAmountString string, transf
 		return "", errors.New("sending to yourself is not supported")
 	}
 
-	transferAmount, err := strconv.ParseFloat(transferAmountString, 64) // transferAmount is expressed in TRTL
+       /* Remove commas from the input before parsing */
+       strippedAmount := strings.Replace(transferAmountString, ",", "", -1)
+
+       transferAmount, err := strconv.ParseFloat(strippedAmount, 64) // transferAmount is expressed in TRTL
 	if err != nil {
 		return "", errors.New("amount is invalid")
 	}
