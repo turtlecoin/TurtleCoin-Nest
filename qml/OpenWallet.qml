@@ -41,15 +41,17 @@ Rectangle {
 
         MyComboBox {
             id: comboBox
+            currentIndex: -1
             sizeToContents: true
             model: [ "Local Blockchain", "public.turtlenode.io", "public.turtlenode.net" ]
-            onAccepted: {
+            onActivated: {
                 if(currentIndex === 0) {
-                    QmlBridge.choseRemote(false)
+                    QmlBridge.choseRemote(false, currentText);
                 }
                 else {
-                    QmlBridge.choseRemote(true)
+                    QmlBridge.choseRemote(true, currentText);
                 }
+                console.log("current text: " + currentText);
             }
         }
     }

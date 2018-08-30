@@ -5,6 +5,7 @@ import (
 	"TurtleCoin-Nest/walletdmanager"
 	"database/sql"
 	"encoding/json"
+	"fmt"
 	"io"
 	"io/ioutil"
 	"net/http"
@@ -124,11 +125,11 @@ type QmlBridge struct {
 		privateSpendKey string,
 		mnemonicSeed string,
 		confirmPasswordWallet string) `slot:"clickedButtonImport"`
-	_ func(remote bool)              `slot:"choseRemote"`
-	_ func(amountTRTL string) string `slot:"getTransferAmountUSD"`
-	_ func()                         `slot:"clickedCloseSettings"`
-	_ func()                         `slot:"clickedSettingsButton"`
-	_ func(displayFiat bool)         `slot:"choseDisplayFiat"`
+	_ func(remote bool, daemonAddress string) `slot:"choseRemote"`
+	_ func(amountTRTL string) string          `slot:"getTransferAmountUSD"`
+	_ func()                                  `slot:"clickedCloseSettings"`
+	_ func()                                  `slot:"clickedSettingsButton"`
+	_ func(displayFiat bool)                  `slot:"choseDisplayFiat"`
 	_ func(daemonAddress string,
 		daemonPort string) `slot:"saveRemoteDaemonInfo"`
 	_ func()                   `slot:"resetRemoteDaemonInfo"`
@@ -318,8 +319,11 @@ func connectQMLToGOFunctions() {
 		closeWallet()
 	})
 
-	qmlBridge.ConnectChoseRemote(func(remote bool) {
+	qmlBridge.ConnectChoseRemote(func(remote bool, daemonAddress string) {
 		useRemoteNode = remote
+		if daemonAddress != "Local Blockchain" {
+			remoteDaemonAddress = daemonAddress
+		}
 		recordUseRemoteToDB(useRemoteNode)
 	})
 
@@ -546,6 +550,8 @@ func optimizeWalletWithFusion() {
 }
 
 func startWalletWithWalletInfo(pathToWallet string, passwordWallet string) bool {
+
+	fmt.Println(remoteDaemonAddress)
 
 	err := walletdmanager.StartWalletd(pathToWallet, passwordWallet, useRemoteNode, remoteDaemonAddress, remoteDaemonPort)
 	if err != nil {
