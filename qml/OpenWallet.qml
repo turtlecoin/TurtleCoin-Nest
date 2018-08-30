@@ -39,22 +39,17 @@ Rectangle {
         width: 400
         height: 74
 
-        ColumnLayout {
-            OldControls.ExclusiveGroup { id: tabPositionGroup }
-            OldControls.RadioButton {
-                id: radioButtonUseLocal
-                text: "Local blockchain"
-                exclusiveGroup: tabPositionGroup
-                style: radioButtonStyle
-                onClicked: QmlBridge.choseRemote(false)
-            }
-            OldControls.RadioButton {
-                id: radioButtonUseRemoteNode
-                text: ""
-                checked: true
-                exclusiveGroup: tabPositionGroup
-                style: radioButtonStyle
-                onClicked: QmlBridge.choseRemote(true)
+        MyComboBox {
+            id: comboBox
+            sizeToContents: true
+            model: [ "Local Blockchain", "public.turtlenode.io", "public.turtlenode.net" ]
+            onAccepted: {
+                if(currentIndex === 0) {
+                    QmlBridge.choseRemote(false)
+                }
+                else {
+                    QmlBridge.choseRemote(true)
+                }
             }
         }
     }
