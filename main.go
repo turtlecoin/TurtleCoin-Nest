@@ -5,7 +5,6 @@ import (
 	"TurtleCoin-Nest/walletdmanager"
 	"database/sql"
 	"encoding/json"
-	"fmt"
 	"io"
 	"io/ioutil"
 	"net/http"
@@ -550,8 +549,6 @@ func optimizeWalletWithFusion() {
 }
 
 func startWalletWithWalletInfo(pathToWallet string, passwordWallet string) bool {
-
-	fmt.Println(remoteDaemonAddress)
 
 	err := walletdmanager.StartWalletd(pathToWallet, passwordWallet, useRemoteNode, remoteDaemonAddress, remoteDaemonPort)
 	if err != nil {

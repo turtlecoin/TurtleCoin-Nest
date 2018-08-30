@@ -51,7 +51,6 @@ Rectangle {
                 else {
                     QmlBridge.choseRemote(true, currentText);
                 }
-                console.log("current text: " + currentText);
             }
         }
     }
