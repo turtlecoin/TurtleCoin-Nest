@@ -33,7 +33,7 @@ Rectangle {
         id: rectangleRadioButtonRemote
         color: "transparent"
         anchors.right: buttonSettings.right
-        anchors.rightMargin: 60
+        anchors.rightMargin: 67
         anchors.top: parent.top
         anchors.topMargin: 20
         width: 400
@@ -43,7 +43,9 @@ Rectangle {
             id: comboBox
             currentIndex: -1
             sizeToContents: true
-            model: [ "Local Blockchain", "public.turtlenode.io", "public.turtlenode.net" ]
+            model: [ "Local Blockchain", "public.turtlenode.io", "public.turtlenode.net", "public.turtle-node.com" ]
+            flat: true
+
             onActivated: {
                 if(currentIndex === 0) {
                     QmlBridge.choseRemote(false, currentText);
@@ -51,6 +53,20 @@ Rectangle {
                 else {
                     QmlBridge.choseRemote(true, currentText);
                 }
+            }
+
+            background: Rectangle {
+                color: "#555555"
+                radius: 3
+            }
+            
+            contentItem: Text {
+                leftPadding: 5
+
+                text: parent.displayText
+                color: "#cfcfcf"
+                verticalAlignment: Text.AlignVCenter
+                elide: Text.ElideRight
             }
         }
     }
