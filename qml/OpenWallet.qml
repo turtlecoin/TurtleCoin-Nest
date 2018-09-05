@@ -39,34 +39,56 @@ Rectangle {
         width: 400
         height: 74
 
-        MyComboBox {
-            id: comboBox
-            currentIndex: -1
-            sizeToContents: true
-            model: [ "Local Blockchain", "public.turtlenode.io", "public.turtlenode.net", "public.turtle-node.com" ]
-            flat: true
-
-            onActivated: {
-                if(currentIndex === 0) {
-                    QmlBridge.choseRemote(false, currentText);
-                }
-                else {
-                    QmlBridge.choseRemote(true, currentText);
+        ColumnLayout {
+            OldControls.ExclusiveGroup { id: tabPositionGroup }
+            OldControls.RadioButton {
+                id: radioButtonUseLocal
+                text: "Local blockchain"
+                exclusiveGroup: tabPositionGroup
+                style: radioButtonStyle
+                onClicked: {
+                    QmlBridge.choseRemote(false, text)
                 }
             }
+            RowLayout {
+                OldControls.RadioButton {
+                    id: radioButtonUseRemoteNode
+                    text: ""
+                    checked: true
+                    exclusiveGroup: tabPositionGroup
+                    style: radioButtonStyle
+                    onClicked: {
+                        QmlBridge.choseRemote(true, comboBox.currentText)
+                    }
+                }
+                MyComboBox {
+                    id: comboBox
+                    anchors.left: radioButtonUseRemoteNode.right
+                    anchors.leftMargin: 20
+                    sizeToContents: true
+                    model: [ "public.turtlenode.io", "public.turtlenode.net", "public.turtle-node.com" ]
+                    flat: true
 
-            background: Rectangle {
-                color: "#555555"
-                radius: 3
-            }
-            
-            contentItem: Text {
-                leftPadding: 5
+                    onActivated: {
+                        if(radioButtonUseRemoteNode.checked) {
+                            QmlBridge.choseRemote(true, currentText)
+                        }
+                    }
 
-                text: parent.displayText
-                color: "#cfcfcf"
-                verticalAlignment: Text.AlignVCenter
-                elide: Text.ElideRight
+                    background: Rectangle {
+                        color: "#555555"
+                        radius: 3
+                    }
+                
+                    contentItem: Text {
+                        leftPadding: 5
+
+                        text: parent.displayText
+                        color: "#cfcfcf"
+                        verticalAlignment: Text.AlignVCenter
+                        elide: Text.ElideRight
+                    }
+                }
             }
         }
     }

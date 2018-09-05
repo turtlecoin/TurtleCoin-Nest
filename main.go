@@ -320,7 +320,7 @@ func connectQMLToGOFunctions() {
 
 	qmlBridge.ConnectChoseRemote(func(remote bool, daemonAddress string) {
 		useRemoteNode = remote
-		if daemonAddress != "Local Blockchain" {
+		if daemonAddress != "Local blockchain" {
 			remoteDaemonAddress = daemonAddress
 		}
 		recordUseRemoteToDB(useRemoteNode)
@@ -663,7 +663,7 @@ func saveRemoteDaemonInfo(daemonAddress string, daemonPort string) {
 	remoteDaemonAddress = daemonAddress
 	remoteDaemonPort = daemonPort
 	recordRemoteDaemonInfoToDB(remoteDaemonAddress, remoteDaemonPort)
-	remoteNodeDescr := "Remote node (" + remoteDaemonAddress + ")"
+	remoteNodeDescr := "Remote node"
 	qmlBridge.DisplayUseRemoteNode(getUseRemoteFromDB(), remoteNodeDescr)
 }
 
@@ -700,7 +700,7 @@ func getAndDisplayStartInfoFromDB() {
 
 	qmlBridge.DisplayPathToPreviousWallet(getPathWalletFromDB())
 	remoteDaemonAddress, remoteDaemonPort = getRemoteDaemonInfoFromDB()
-	remoteNodeDescr := "Remote node (" + remoteDaemonAddress + ")"
+	remoteNodeDescr := "Remote node"
 	qmlBridge.DisplayUseRemoteNode(getUseRemoteFromDB(), remoteNodeDescr)
 	qmlBridge.DisplaySettingsValues(getDisplayConversionFromDB())
 	qmlBridge.DisplaySettingsRemoteDaemonInfo(remoteDaemonAddress, remoteDaemonPort)
