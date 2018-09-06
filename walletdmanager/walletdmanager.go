@@ -46,7 +46,8 @@ var (
 	isPlatformLinux   = true
 	isPlatformWindows = false
 
-	nodeFee float64
+	// fee to be paid to node per transaction
+	NodeFee float64
 )
 
 // Setup sets up some settings. It must be called at least once at the beginning of your program.
@@ -98,7 +99,7 @@ func RequestAvailableBalanceToBeSpent(transferFeeString string) (availableBalanc
 		return 0, errors.New("fee should be positive")
 	}
 
-	availableBalance = availableBalance - transferFee - nodeFee
+	availableBalance = availableBalance - transferFee - NodeFee
 	if availableBalance < 0 {
 		availableBalance = 0
 	}
@@ -167,11 +168,11 @@ func SendTransaction(transferAddress string, transferAmountString string, transf
 		return "", errors.New("fee should be positive")
 	}
 
-	if transferAmount+transferFee+nodeFee > WalletAvailableBalance {
+	if transferAmount+transferFee+NodeFee > WalletAvailableBalance {
 		return "", errors.New("your available balance is insufficient")
 	}
 
-	transactionHash, err = turtlecoinwalletdrpcgo.SendTransaction(transferAddress, transferAmount, transferPaymentID, transferFee, DefaultTransferMixin, rpcPassword)
+	transactionHash, err = turtlecoinwalletdrpcgo.SendTransaction(transferAddress, transferAmount, transferPaymentID, transferFee, rpcPassword)
 	if err != nil {
 		log.Error("error sending transaction. err: ", err)
 		return "", err
@@ -187,7 +188,7 @@ func OptimizeWalletWithFusion() (transactionHash string, err error) {
 		return "", errors.Wrap(err, "getOptimisedFusionParameters failed")
 	}
 
-	transactionHash, err = turtlecoinwalletdrpcgo.SendFusionTransaction(smallestOptimizedThreshold, DefaultTransferMixin, []string{WalletAddress}, WalletAddress, rpcPassword)
+	transactionHash, err = turtlecoinwalletdrpcgo.SendFusionTransaction(smallestOptimizedThreshold, []string{WalletAddress}, WalletAddress, rpcPassword)
 	if err != nil {
 		log.Error("error sending fusion transaction. err: ", err)
 		return "", errors.Wrap(err, "sending fusion transaction failed")
@@ -474,11 +475,6 @@ func StartWalletd(walletPath string, walletPassword string, useRemoteNode bool, 
 		return errors.New("error communicating with turtle-service via rpc")
 	}
 
-	nodeFee, err = RequestFeeinfo()
-	if err != nil {
-		log.Warning("Error getting node fee from turtle-service. err: ", err.Error())
-	}
-
 	WalletdOpenAndRunning = true
 
 	// time.Sleep(5 * time.Second)
@@ -604,7 +600,7 @@ func GracefullyQuitTurtleCoind() {
 // privateViewKey is the private view key of the wallet.
 // privateSpendKey is the private spend key of the wallet.
 // mnemonicSeed is the mnemonic seed for generating the wallet
-func CreateWallet(walletFilename string, walletPassword string, walletPasswordConfirmation string, privateViewKey string, privateSpendKey string, mnemonicSeed string) (err error) {
+func CreateWallet(walletFilename string, walletPassword string, walletPasswordConfirmation string, privateViewKey string, privateSpendKey string, mnemonicSeed string, scanHeight string) (err error) {
 
 	if WalletdOpenAndRunning {
 		return errors.New("turtle-service is already running. It should be stopped before being able to generate a new wallet")
@@ -676,15 +672,20 @@ func CreateWallet(walletFilename string, walletPassword string, walletPasswordCo
 	}
 	defer walletdCurrentSessionLogFile.Close()
 
+	_, err = strconv.ParseUint(scanHeight, 10, 64)
+	if err != nil || scanHeight == "" {
+		scanHeight = "0"
+	}
+
 	if privateViewKey == "" && privateSpendKey == "" && mnemonicSeed == "" {
 		// generate new wallet
 		cmdWalletd = exec.Command(pathToWalletd, "-w", pathToWallet, "-p", walletPassword, "-l", pathToLogWalletdCurrentSession, "--log-level", walletdLogLevel, "-g")
 	} else if mnemonicSeed == "" {
 		// import wallet from private view and spend keys
-		cmdWalletd = exec.Command(pathToWalletd, "-w", pathToWallet, "-p", walletPassword, "--view-key", privateViewKey, "--spend-key", privateSpendKey, "-l", pathToLogWalletdCurrentSession, "--log-level", walletdLogLevel, "-g")
+		cmdWalletd = exec.Command(pathToWalletd, "-w", pathToWallet, "-p", walletPassword, "--view-key", privateViewKey, "--spend-key", privateSpendKey, "-l", pathToLogWalletdCurrentSession, "--log-level", walletdLogLevel, "--scan-height", scanHeight, "-g")
 	} else {
 		// import wallet from seed
-		cmdWalletd = exec.Command(pathToWalletd, "-w", pathToWallet, "-p", walletPassword, "--mnemonic-seed", mnemonicSeed, "-l", pathToLogWalletdCurrentSession, "--log-level", walletdLogLevel, "-g")
+		cmdWalletd = exec.Command(pathToWalletd, "-w", pathToWallet, "-p", walletPassword, "--mnemonic-seed", mnemonicSeed, "-l", pathToLogWalletdCurrentSession, "--log-level", walletdLogLevel, "--scan-height", scanHeight, "-g")
 	}
 
 	hideCmdWindowIfNeeded(cmdWalletd)
@@ -794,13 +795,9 @@ func RequestFeeinfo() (nodeFee float64, err error) {
 		return 0, err
 	}
 
+	NodeFee = nodeFee
+
 	return nodeFee, nil
-}
-
-// GetNodeFee returns the value of the node fee
-func GetNodeFee() float64 {
-
-	return nodeFee
 }
 
 // generate a random string with n characters. from https://stackoverflow.com/a/31832326/1668837

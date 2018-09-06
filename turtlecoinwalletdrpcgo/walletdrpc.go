@@ -132,7 +132,7 @@ func RequestStatus(rpcPassword string) (blockCount int, knownBlockCount int, pee
 
 // SendTransaction makes a transfer with the provided information.
 // parameters amount and fee are expressed in TRTL, not 0.01 TRTL
-func SendTransaction(addressRecipient string, amount float64, paymentID string, fee float64, mixin int, rpcPassword string) (transactionHash string, err error) {
+func SendTransaction(addressRecipient string, amount float64, paymentID string, fee float64, rpcPassword string) (transactionHash string, err error) {
 
 	amountInt := int(amount * 100) // expressed in hundredth of TRTL
 	feeInt := int(fee * 100)       // expressed in hundredth of TRTL
@@ -140,7 +140,6 @@ func SendTransaction(addressRecipient string, amount float64, paymentID string, 
 	args := make(map[string]interface{})
 	args["fee"] = feeInt
 	args["paymentId"] = paymentID
-	args["anonymity"] = mixin
 	var transfers [1]map[string]interface{}
 	transfer := make(map[string]interface{})
 	transfer["amount"] = amountInt
@@ -256,13 +255,12 @@ func EstimateFusion(threshold int, addresses []string, rpcPassword string) (fusi
 // SendFusionTransaction allows you to send a fusion transaction, by taking funds from selected addresses and transferring them to the destination address.
 // threshold is the value that determines which outputs will be optimized. Only the outputs, lesser than the threshold value, will be included into a fusion transaction (threshold is expressed in TRTL, not 0.01 TRTL).
 // parameters amount and fee are expressed in TRTL, not 0.01 TRTL
-func SendFusionTransaction(threshold int, mixin int, addresses []string, destinationAddress string, rpcPassword string) (transactionHash string, err error) {
+func SendFusionTransaction(threshold int, addresses []string, destinationAddress string, rpcPassword string) (transactionHash string, err error) {
 
 	threshold *= 100 // expressed in hundredth of TRTL
 
 	args := make(map[string]interface{})
 	args["threshold"] = threshold
-	args["anonymity"] = mixin
 	args["addresses"] = addresses
 	args["destinationAddress"] = destinationAddress
 
@@ -299,7 +297,6 @@ func Feeinfo(rpcPassword string) (address string, fee float64, status string, er
 	}
 
 	result := responseMap["result"]
-
 	if result == nil {
 		return "", 0, "", errors.New("result from feeinfo request is nil")
 	}
@@ -316,6 +313,10 @@ func Feeinfo(rpcPassword string) (address string, fee float64, status string, er
 		fee = resultAmount.(float64) / 100
 	} else {
 		fee = 0
+	}
+
+	if address == "" && fee > 0 {
+		return "", 0, "", errors.New("fee info is not valid")
 	}
 
 	resultStatus := result.(map[string]interface{})["status"]

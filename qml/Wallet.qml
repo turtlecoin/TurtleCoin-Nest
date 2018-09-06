@@ -609,8 +609,8 @@ Rectangle {
             id: rectangleTextInputTransferAddress
             color: "#555555"
             height: 25
-            anchors.right: parent.right
-            anchors.rightMargin: 5
+            anchors.right: buttonSavedAddress.left
+            anchors.rightMargin: 7
             anchors.top: textTransferAddrDescr.bottom
             anchors.topMargin: 6
             anchors.left: textTransferAddrDescr.left
@@ -639,6 +639,73 @@ Rectangle {
                     /* Disable payment ID input if integrated address */
                     textInputTransferPaymentID.enabled = textInputTransferAddress.text.length != 187
                 }
+            }
+        }
+
+        Button {
+            id: buttonSavedAddress
+            text: "addresses"
+            anchors.bottom: rectangleTextInputTransferAddress.verticalCenter
+            anchors.bottomMargin: 2
+            anchors.right: parent.right
+            anchors.rightMargin: 3
+            height: buttonSaveAddress.height
+            enabled: true
+
+            contentItem: Text {
+                text: buttonSavedAddress.text
+                font.pixelSize: 12
+                font.family: "Arial"
+                font.bold: true
+                opacity: enabled ? 1.0 : 0.3
+                color: buttonSavedAddress.down ? "#dddddd" : "#ffffff"
+                horizontalAlignment: Text.AlignHCenter
+                verticalAlignment: Text.AlignVCenter
+            }
+
+            background: Rectangle {
+                implicitWidth: 70
+                height: buttonSavedAddress.height
+                opacity: enabled ? 1 : 0.3
+                radius: 6
+                color: buttonSavedAddress.down ? "#383838" : "#444444"
+            }
+
+            onClicked: {
+                dialogListAddresses.show();
+            }
+        }
+
+        Button {
+            id: buttonSaveAddress
+            text: "save"
+            anchors.top: rectangleTextInputTransferAddress.verticalCenter
+            anchors.topMargin: 2
+            anchors.horizontalCenter: buttonSavedAddress.horizontalCenter
+            height: 25
+            enabled: true
+
+            contentItem: Text {
+                text: buttonSaveAddress.text
+                font.pixelSize: 12
+                font.family: "Arial"
+                font.bold: true
+                opacity: enabled ? 1.0 : 0.3
+                color: buttonSaveAddress.down ? "#dddddd" : "#ffffff"
+                horizontalAlignment: Text.AlignHCenter
+                verticalAlignment: Text.AlignVCenter
+            }
+
+            background: Rectangle {
+                implicitWidth: 70
+                height: 25
+                opacity: enabled ? 1 : 0.3
+                radius: 6
+                color: buttonSaveAddress.down ? "#383838" : "#444444"
+            }
+
+            onClicked: {
+                dialogNameAddress.show();
             }
         }
 
@@ -977,7 +1044,11 @@ Rectangle {
         function transferConfirmed() {
             rectangleMainWallet.startWaiting();
             QmlBridge.clickedButtonSend(transferRecipient, transferAmount, transferPaymentID, transferFee);
-        }   
+        }
+
+        function enteredNameAddress(nameAddress) {
+            QmlBridge.saveAddress(nameAddress, textInputTransferAddress.text, textInputTransferPaymentID.text);
+        }
     }
 
     Rectangle {
@@ -1233,6 +1304,141 @@ Rectangle {
         onYes: {
             rectangleMainWallet.startWaiting();
             QmlBridge.optimizeWalletWithFusion();
+        }
+    }
+
+    Dialog {
+        id: dialogNameAddress
+        title: "Name for saving address"
+        standardButtons: StandardButton.Cancel | StandardButton.Ok
+        width: 250
+        height: 120
+
+        Text {
+            id: textDescriptionNameAddress
+            text: "Choose a name for this address:"
+            font.family: "Arial"
+        }
+
+        Rectangle {
+            id: rectangleTextInputNameAddress
+            color: "#bbbbbb"
+            height: 25
+            anchors.top: textDescriptionNameAddress.bottom
+            anchors.topMargin: 12
+            anchors.left: textDescriptionNameAddress.left
+            anchors.leftMargin: 0
+            anchors.right: parent.right
+            anchors.rightMargin: 10
+            radius: 3
+
+            TextInput {
+                id: textInputNameAddress
+                anchors.fill: parent
+                color: "#444444"
+                text: ""
+                rightPadding: 5
+                leftPadding: 5
+                verticalAlignment: Text.AlignVCenter
+                clip: true
+                font.family: "Arial"
+            }
+        }
+
+        function show() {
+            dialogNameAddress.open();
+            textInputNameAddress.text = "";
+            textInputNameAddress.focus = true;
+        }
+
+        onAccepted: {
+            rectangleTransfer.enteredNameAddress(textInputNameAddress.text)
+        }
+    }
+
+    Dialog {
+        id: dialogListAddresses
+        title: "Your saved addresses"
+        standardButtons: StandardButton.Cancel
+        width: 400
+        height: 500
+
+        Component {
+            id: delegateListViewAddresses
+            ItemListAddress {
+                id: itemListAddress
+                anchors.left: parent.left
+                anchors.leftMargin: 0
+                anchors.right: parent.right
+                anchors.rightMargin: 0
+                height: 80
+
+                function clickedSavedAddress(address, paymentID) {
+                    
+                    textInputTransferAddress.text = address;
+                    textInputTransferAddress.cursorPosition = 0;
+                    textInputTransferPaymentID.text = paymentID;
+                    textInputTransferPaymentID.cursorPosition = 0;
+                    
+                    dialogListAddresses.close();
+                }
+
+                function clickedDeleteSavedAddress(dbID) {
+                    QmlBridge.deleteSavedAddress(dbID)
+
+                    modelListViewAddresses.clear();
+                    QmlBridge.fillListSavedAddresses();
+                }
+            }
+        }
+
+        ListModel {
+            id: modelListViewAddresses
+        }
+
+        Rectangle {
+            id: rectangleListAddresses
+            anchors.fill: parent
+
+            ListView {
+                id: listViewAddresses
+                model: modelListViewAddresses
+                delegate: delegateListViewAddresses
+                clip: true
+                boundsBehavior: Flickable.DragAndOvershootBounds
+                ScrollBar.vertical: ScrollBar {
+                    width: 7
+                    anchors.right: parent.right
+                    anchors.rightMargin: 0
+                    policy: ScrollBar.AlwaysOn
+                }
+                anchors.bottom: parent.bottom
+                anchors.bottomMargin: 10
+                anchors.right: parent.right
+                anchors.rightMargin: 4
+                anchors.left: parent.left
+                anchors.leftMargin: 10
+                anchors.top: parent.top
+                anchors.topMargin: 10
+
+                Connections {
+                    target: QmlBridge
+                    onAddSavedAddressToList: {
+                        modelListViewAddresses.append({
+                            savedAddressIDValue: dbID,
+                            savedAddressNameValue: name,
+                            savedAddressAddressValue: address,
+                            savedAddressPaymentIDValue: paymentID
+                        })
+                    }
+                }
+            }
+        }
+
+        function show() {
+            modelListViewAddresses.clear();
+            QmlBridge.fillListSavedAddresses();
+            dialogListAddresses.open();
         }
     }
 

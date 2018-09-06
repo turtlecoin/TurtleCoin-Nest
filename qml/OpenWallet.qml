@@ -783,7 +783,7 @@ Rectangle {
             font.pixelSize: 14
             font.family: "Arial"
             anchors.top: textImportWalletExtensionDescr.bottom
-            anchors.topMargin: 30
+            anchors.topMargin: 20
             anchors.left: textImportWalletExtensionDescr.left
             anchors.leftMargin: 0
         }
@@ -793,7 +793,7 @@ Rectangle {
             color: "#555555"
             height: 25
             anchors.top: textImportWalletSeedDescr.bottom
-            anchors.topMargin: 15
+            anchors.topMargin: 10
             anchors.left: textImportWalletSeedDescr.left
             anchors.leftMargin: 0
             anchors.right: rectangleTextInputImportWalletPassword.right
@@ -831,7 +831,7 @@ Rectangle {
             font.pixelSize: 14
             font.family: "Arial"
             anchors.top: textImportWalletExtensionDescr.bottom
-            anchors.topMargin: 30
+            anchors.topMargin: 20
             anchors.left: textImportWalletExtensionDescr.left
             anchors.leftMargin: 0
             visible: false
@@ -842,7 +842,7 @@ Rectangle {
             color: "#555555"
             height: 25
             anchors.top: textImportWalletPrivateViewKeyDescr.bottom
-            anchors.topMargin: 15
+            anchors.topMargin: 10
             anchors.left: textImportWalletPrivateViewKeyDescr.left
             anchors.leftMargin: 0
             anchors.right: rectangleTextInputImportWalletPassword.right
@@ -893,7 +893,7 @@ Rectangle {
             color: "#555555"
             height: 25
             anchors.top: textImportWalletPrivateSpendKeyDescr.bottom
-            anchors.topMargin: 15
+            anchors.topMargin: 10
             anchors.left: textImportWalletPrivateSpendKeyDescr.left
             anchors.leftMargin: 0
             anchors.right: rectangleTextInputImportWalletPrivateViewKey.right
@@ -924,12 +924,70 @@ Rectangle {
             }
         }
 
+        Text {
+            id: textImportWalletScanHeightDescr
+            color: "#ffffff"
+            text: "Choose a starting scan height"
+            horizontalAlignment: Text.AlignLeft
+            verticalAlignment: Text.AlignBottom
+            font.pixelSize: 14
+            font.family: "Arial"
+            anchors.top: rectangleTextInputImportWalletSeed.bottom
+            anchors.topMargin: 20
+            anchors.left: rectangleTextInputImportWalletSeed.left
+            anchors.leftMargin: 0
+        }
+
+        Rectangle {
+            id: rectangleTextInputImportWalletScanHeight
+            color: "#555555"
+            height: 25
+            width: 100
+            anchors.top: textImportWalletScanHeightDescr.bottom
+            anchors.topMargin: 10
+            anchors.left: textImportWalletScanHeightDescr.left
+            anchors.leftMargin: 0
+            radius: 3
+
+            TextInput {
+                id: textInputImportWalletScanHeight
+                anchors.fill: parent
+                color: "#cfcfcf"
+                text: ""
+                rightPadding: 5
+                leftPadding: 5
+                selectionColor: "#eeeeee"
+                selectedTextColor: "#999999"
+                selectByMouse: true
+                clip: true
+                font.family: "Arial"
+                horizontalAlignment: Text.AlignLeft
+                font.pixelSize: 14
+                verticalAlignment: Text.AlignVCenter
+                enabled: true
+            }
+        }
+
+        Text {
+            id: textImportWalletScanHeightExtraDescr
+            color: "#999999"
+            text: "Enter the approximate height you created your wallet at. Defaults to 0. Massively speeds up wallet sync"
+            anchors.top: rectangleTextInputImportWalletScanHeight.bottom
+            anchors.topMargin: 8
+            anchors.left: rectangleTextInputImportWalletScanHeight.left
+            anchors.leftMargin: 0
+            font.pixelSize: 13
+            verticalAlignment: Text.AlignBottom
+            font.family: "Arial"
+            horizontalAlignment: Text.AlignLeft
+        }
+
         Button {
             id: buttonImportWallet
             text: "IMPORT"
             anchors.right: parent.right
             anchors.rightMargin: 60
-            anchors.bottom: rectangleTextInputImportWalletPrivateSpendKey.bottom
+            anchors.bottom: rectangleTextInputImportWalletScanHeight.bottom
             anchors.bottomMargin: 0
             enabled: false
 
@@ -968,7 +1026,7 @@ Rectangle {
 
         function enteredPasswordConfirmation(passwordConfirmation) {
             busyIndicator.running = true;
-            QmlBridge.clickedButtonImport(textImportWalletFilename.text, textInputImportWalletPassword.text, textInputImportWalletPrivateViewKey.text, textInputImportWalletPrivateSpendKey.text, textInputImportWalletSeed.text, passwordConfirmation);
+            QmlBridge.clickedButtonImport(textImportWalletFilename.text, textInputImportWalletPassword.text, textInputImportWalletPrivateViewKey.text, textInputImportWalletPrivateSpendKey.text, textInputImportWalletSeed.text, passwordConfirmation, textInputImportWalletScanHeight.text);
             textInputImportWalletPassword.text = "";
         }
 
@@ -987,6 +1045,12 @@ Rectangle {
             rectangleTextInputImportWalletPrivateSpendKey.visible = !displaySeed
             textInputImportWalletPrivateSpendKey.text = ""
             textInputImportWalletPrivateSpendKey.enabled = !displaySeed
+
+            if(!displaySeed) {
+                textImportWalletScanHeightDescr.anchors.top = rectangleTextInputImportWalletPrivateSpendKey.bottom
+            } else {
+                textImportWalletScanHeightDescr.anchors.top = rectangleTextInputImportWalletSeed.bottom
+            }
         } 
     }
 

@@ -99,6 +99,10 @@ type QmlBridge struct {
 	_ func(nodeFee string)                  `signal:"displayNodeFee"`
 	_ func(index int, confirmations string) `signal:"updateConfirmationsOfTransaction"`
 	_ func()                                `signal:"displayInfoDialog"`
+	_ func(dbID int,
+		name string,
+		address string,
+		paymentID string) `signal:"addSavedAddressToList"`
 
 	// qml to go
 	_ func(msg string)           `slot:"log"`
@@ -123,7 +127,8 @@ type QmlBridge struct {
 		privateViewKey string,
 		privateSpendKey string,
 		mnemonicSeed string,
-		confirmPasswordWallet string) `slot:"clickedButtonImport"`
+		confirmPasswordWallet string,
+		scanHeight string) `slot:"clickedButtonImport"`
 	_ func(remote bool, daemonAddress string) `slot:"choseRemote"`
 	_ func(amountTRTL string) string          `slot:"getTransferAmountUSD"`
 	_ func()                                  `slot:"clickedCloseSettings"`
@@ -139,6 +144,11 @@ type QmlBridge struct {
 	_ func() string            `slot:"getNewVersion"`
 	_ func() string            `slot:"getNewVersionURL"`
 	_ func()                   `slot:"optimizeWalletWithFusion"`
+	_ func(name string,
+		address string,
+		paymentID string) `slot:"saveAddress"`
+	_ func()         `slot:"fillListSavedAddresses"`
+	_ func(dbID int) `slot:"deleteSavedAddress"`
 
 	_ func(object *core.QObject) `slot:"registerToGo"`
 	_ func(objectName string)    `slot:"deregisterToGo"`
@@ -308,9 +318,9 @@ func connectQMLToGOFunctions() {
 		}()
 	})
 
-	qmlBridge.ConnectClickedButtonImport(func(filenameWallet string, passwordWallet string, privateViewKey string, privateSpendKey string, mnemonicSeed string, confirmPasswordWallet string) {
+	qmlBridge.ConnectClickedButtonImport(func(filenameWallet string, passwordWallet string, privateViewKey string, privateSpendKey string, mnemonicSeed string, confirmPasswordWallet string, scanHeight string) {
 		go func() {
-			importWalletWithWalletInfo(filenameWallet, passwordWallet, confirmPasswordWallet, privateViewKey, privateSpendKey, mnemonicSeed)
+			importWalletWithWalletInfo(filenameWallet, passwordWallet, confirmPasswordWallet, privateViewKey, privateSpendKey, mnemonicSeed, scanHeight)
 		}()
 	})
 
@@ -374,6 +384,18 @@ func connectQMLToGOFunctions() {
 			optimizeWalletWithFusion()
 		}()
 	})
+
+	qmlBridge.ConnectSaveAddress(func(name string, address string, paymentID string) {
+		saveAddress(name, address, paymentID)
+	})
+
+	qmlBridge.ConnectFillListSavedAddresses(func() {
+		getSavedAddressesFromDBAndDisplay()
+	})
+
+	qmlBridge.ConnectDeleteSavedAddress(func(dbID int) {
+		deleteSavedAddressFromDB(dbID)
+	})
 }
 
 func startDisplayWalletInfo() {
@@ -397,6 +419,7 @@ func startDisplayWalletInfo() {
 		tickerRefreshConnectionInfo = time.NewTicker(time.Second * 15)
 		for range tickerRefreshConnectionInfo.C {
 			getAndDisplayConnectionInfo()
+			getNodeFeeAndDisplay()
 		}
 	}()
 
@@ -507,7 +530,7 @@ func getAndDisplayListTransactions(forceFullUpdate bool) {
 
 func transfer(transferAddress string, transferAmount string, transferPaymentID string, transferFee string) {
 
-	log.Info("SEND: to: ", transferAddress, "  amount: ", transferAmount, "  payment ID: ", transferPaymentID, "  network fee: ", transferFee, "  node fee: ", walletdmanager.GetNodeFee())
+	log.Info("SEND: to: ", transferAddress, "  amount: ", transferAmount, "  payment ID: ", transferPaymentID, "  network fee: ", transferFee, "  node fee: ", walletdmanager.NodeFee)
 
 	transactionID, err := walletdmanager.SendTransaction(transferAddress, transferAmount, transferPaymentID, transferFee)
 	if err != nil {
@@ -569,7 +592,7 @@ func startWalletWithWalletInfo(pathToWallet string, passwordWallet string) bool 
 
 func createWalletWithWalletInfo(filenameWallet string, passwordWallet string, confirmPasswordWallet string) bool {
 
-	err := walletdmanager.CreateWallet(filenameWallet, passwordWallet, confirmPasswordWallet, "", "", "")
+	err := walletdmanager.CreateWallet(filenameWallet, passwordWallet, confirmPasswordWallet, "", "", "", "")
 	if err != nil {
 		log.Warn("error creating wallet. error: ", err)
 		qmlBridge.FinishedCreatingWallet()
@@ -585,9 +608,9 @@ func createWalletWithWalletInfo(filenameWallet string, passwordWallet string, co
 	return true
 }
 
-func importWalletWithWalletInfo(filenameWallet string, passwordWallet string, confirmPasswordWallet string, privateViewKey string, privateSpendKey string, mnemonicSeed string) bool {
+func importWalletWithWalletInfo(filenameWallet string, passwordWallet string, confirmPasswordWallet string, privateViewKey string, privateSpendKey string, mnemonicSeed string, scanHeight string) bool {
 
-	err := walletdmanager.CreateWallet(filenameWallet, passwordWallet, confirmPasswordWallet, privateViewKey, privateSpendKey, mnemonicSeed)
+	err := walletdmanager.CreateWallet(filenameWallet, passwordWallet, confirmPasswordWallet, privateViewKey, privateSpendKey, mnemonicSeed, scanHeight)
 	if err != nil {
 		log.Warn("error importing wallet. error: ", err)
 		qmlBridge.FinishedCreatingWallet()
@@ -655,7 +678,12 @@ func getDefaultFeeAndDisplay() {
 
 func getNodeFeeAndDisplay() {
 
-	qmlBridge.DisplayNodeFee(humanize.FtoaWithDigits(walletdmanager.GetNodeFee(), 2))
+	nodeFee, err := walletdmanager.RequestFeeinfo()
+	if err != nil {
+		qmlBridge.DisplayNodeFee("-")
+	} else {
+		qmlBridge.DisplayNodeFee(humanize.FtoaWithDigits(nodeFee, 2))
+	}
 }
 
 func saveRemoteDaemonInfo(daemonAddress string, daemonPort string) {
@@ -665,6 +693,16 @@ func saveRemoteDaemonInfo(daemonAddress string, daemonPort string) {
 	recordRemoteDaemonInfoToDB(remoteDaemonAddress, remoteDaemonPort)
 	remoteNodeDescr := "Remote node"
 	qmlBridge.DisplayUseRemoteNode(getUseRemoteFromDB(), remoteNodeDescr)
+}
+
+func saveAddress(name string, address string, paymentID string) {
+
+	if name == "" || address == "" {
+		qmlBridge.DisplayErrorDialog("Address not saved", "The address field and the name cannot be empty")
+	} else {
+		recordSavedAddressToDB(name, address, paymentID)
+		qmlBridge.DisplayPopup("Saved!", 1500)
+	}
 }
 
 func setupDB(pathToDB string) {
@@ -693,6 +731,11 @@ func setupDB(pathToDB string) {
 	_, err = db.Exec("CREATE TABLE IF NOT EXISTS remoteNodeInfo (id INTEGER PRIMARY KEY AUTOINCREMENT, address VARCHAR(64), port VARCHAR(64))")
 	if err != nil {
 		log.Fatal("error creating table remoteNodeInfo. err: ", err)
+	}
+
+	_, err = db.Exec("CREATE TABLE IF NOT EXISTS savedAddresses (id INTEGER PRIMARY KEY AUTOINCREMENT, name VARCHAR(64), address VARCHAR(64), paymentID VARCHAR(64))")
+	if err != nil {
+		log.Fatal("error creating table savedAddresses. err: ", err)
 	}
 }
 
@@ -831,6 +874,51 @@ func recordDisplayConversionToDB(displayConversion bool) {
 	_, err = stmt.Exec(displayConversion)
 	if err != nil {
 		log.Fatal("error inserting displayFiat into db. err: ", err)
+	}
+}
+
+func getSavedAddressesFromDBAndDisplay() {
+
+	rows, err := db.Query("SELECT id, name, address, paymentID FROM savedAddresses ORDER BY id ASC")
+	if err != nil {
+		log.Fatal("error querying saved addresses from savedAddresses table. err: ", err)
+	}
+	defer rows.Close()
+	for rows.Next() {
+		dbID := 0
+		name := ""
+		address := ""
+		paymentID := ""
+		err = rows.Scan(&dbID, &name, &address, &paymentID)
+		if err != nil {
+			log.Fatal("error reading item from savedAddresses table. err: ", err)
+		}
+		qmlBridge.AddSavedAddressToList(dbID, name, address, paymentID)
+	}
+}
+
+func recordSavedAddressToDB(name string, address string, paymentID string) {
+
+	stmt, err := db.Prepare(`INSERT INTO savedAddresses(name,address,paymentID) VALUES(?,?,?)`)
+	if err != nil {
+		log.Fatal("error preparing to insert saved address into db. err: ", err)
+	}
+	_, err = stmt.Exec(name, address, paymentID)
+	if err != nil {
+		log.Fatal("error inserting saved address into db. err: ", err)
+	}
+}
+
+func deleteSavedAddressFromDB(dbID int) {
+
+	stmt, err := db.Prepare("delete from savedAddresses where id=?")
+	if err != nil {
+		log.Fatal("error preparing to delete saved address from db. err: ", err)
+	}
+
+	_, err = stmt.Exec(dbID)
+	if err != nil {
+		log.Fatal("error deleting saved address from db. err: ", err)
 	}
 }
 
