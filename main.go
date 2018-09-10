@@ -129,11 +129,11 @@ type QmlBridge struct {
 		mnemonicSeed string,
 		confirmPasswordWallet string,
 		scanHeight string) `slot:"clickedButtonImport"`
-	_ func(remote bool)              `slot:"choseRemote"`
-	_ func(amountTRTL string) string `slot:"getTransferAmountUSD"`
-	_ func()                         `slot:"clickedCloseSettings"`
-	_ func()                         `slot:"clickedSettingsButton"`
-	_ func(displayFiat bool)         `slot:"choseDisplayFiat"`
+	_ func(remote bool, daemonAddress string) `slot:"choseRemote"`
+	_ func(amountTRTL string) string          `slot:"getTransferAmountUSD"`
+	_ func()                                  `slot:"clickedCloseSettings"`
+	_ func()                                  `slot:"clickedSettingsButton"`
+	_ func(displayFiat bool)                  `slot:"choseDisplayFiat"`
 	_ func(daemonAddress string,
 		daemonPort string) `slot:"saveRemoteDaemonInfo"`
 	_ func()                   `slot:"resetRemoteDaemonInfo"`
@@ -328,8 +328,11 @@ func connectQMLToGOFunctions() {
 		closeWallet()
 	})
 
-	qmlBridge.ConnectChoseRemote(func(remote bool) {
+	qmlBridge.ConnectChoseRemote(func(remote bool, daemonAddress string) {
 		useRemoteNode = remote
+		if daemonAddress != "Local blockchain" {
+			remoteDaemonAddress = daemonAddress
+		}
 		recordUseRemoteToDB(useRemoteNode)
 	})
 
@@ -688,7 +691,7 @@ func saveRemoteDaemonInfo(daemonAddress string, daemonPort string) {
 	remoteDaemonAddress = daemonAddress
 	remoteDaemonPort = daemonPort
 	recordRemoteDaemonInfoToDB(remoteDaemonAddress, remoteDaemonPort)
-	remoteNodeDescr := "Remote node (" + remoteDaemonAddress + ")"
+	remoteNodeDescr := "Remote node"
 	qmlBridge.DisplayUseRemoteNode(getUseRemoteFromDB(), remoteNodeDescr)
 }
 
@@ -740,7 +743,7 @@ func getAndDisplayStartInfoFromDB() {
 
 	qmlBridge.DisplayPathToPreviousWallet(getPathWalletFromDB())
 	remoteDaemonAddress, remoteDaemonPort = getRemoteDaemonInfoFromDB()
-	remoteNodeDescr := "Remote node (" + remoteDaemonAddress + ")"
+	remoteNodeDescr := "Remote node"
 	qmlBridge.DisplayUseRemoteNode(getUseRemoteFromDB(), remoteNodeDescr)
 	qmlBridge.DisplaySettingsValues(getDisplayConversionFromDB())
 	qmlBridge.DisplaySettingsRemoteDaemonInfo(remoteDaemonAddress, remoteDaemonPort)

@@ -33,7 +33,7 @@ Rectangle {
         id: rectangleRadioButtonRemote
         color: "transparent"
         anchors.right: buttonSettings.right
-        anchors.rightMargin: 60
+        anchors.rightMargin: 67
         anchors.top: parent.top
         anchors.topMargin: 20
         width: 400
@@ -46,15 +46,49 @@ Rectangle {
                 text: "Local blockchain"
                 exclusiveGroup: tabPositionGroup
                 style: radioButtonStyle
-                onClicked: QmlBridge.choseRemote(false)
+                onClicked: {
+                    QmlBridge.choseRemote(false, text)
+                }
             }
-            OldControls.RadioButton {
-                id: radioButtonUseRemoteNode
-                text: ""
-                checked: true
-                exclusiveGroup: tabPositionGroup
-                style: radioButtonStyle
-                onClicked: QmlBridge.choseRemote(true)
+            RowLayout {
+                OldControls.RadioButton {
+                    id: radioButtonUseRemoteNode
+                    text: ""
+                    checked: true
+                    exclusiveGroup: tabPositionGroup
+                    style: radioButtonStyle
+                    onClicked: {
+                        QmlBridge.choseRemote(true, comboBox.currentText)
+                    }
+                }
+                MyComboBox {
+                    id: comboBox
+                    anchors.left: radioButtonUseRemoteNode.right
+                    anchors.leftMargin: 20
+                    sizeToContents: true
+                    model: [ "public.turtlenode.io", "public.turtlenode.net", "public.turtle-node.com" ]
+                    flat: true
+
+                    onActivated: {
+                        if(radioButtonUseRemoteNode.checked) {
+                            QmlBridge.choseRemote(true, currentText)
+                        }
+                    }
+
+                    background: Rectangle {
+                        color: "#555555"
+                        radius: 3
+                    }
+                
+                    contentItem: Text {
+                        leftPadding: 5
+
+                        text: parent.displayText
+                        color: "#cfcfcf"
+                        verticalAlignment: Text.AlignVCenter
+                        elide: Text.ElideRight
+                    }
+                }
             }
         }
     }
