@@ -1,3 +1,8 @@
+// Copyright (c) 2018, The TurtleCoin Developers
+//
+// Please see the included LICENSE file for more information.
+//
+
 import QtQuick.Window 2.2
 import QtQuick 2.7
 import QtQuick.Controls 2.3
@@ -93,13 +98,13 @@ Rectangle {
                     currentIndex: 0
                     implicitWidth: 300
                     implicitHeight: 30
-                    font.pixelSize: 14
-                    font.family: "Arial"
                     textRole: "text"
 
                     contentItem: Text {
                         text: parent.displayText
                         color: "#cfcfcf"
+                        font.pixelSize: 14
+                        font.family: "Arial"
                         verticalAlignment: Text.AlignVCenter
                         leftPadding: 10
                         elide: Text.ElideRight

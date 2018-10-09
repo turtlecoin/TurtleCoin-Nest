@@ -1,5 +1,25 @@
 # Releases
 
+## 0.35
+
+### Release notes
+
+- Dropdown list for choosing a remote node (list is requested from https://github.com/turtlecoin/turtlecoin-nodes-json).
+- Can use checkpoints for syncing local chain (includes checkpoints.csv as of 3rd of October 2018).
+- Various small improvements.
+- Includes TurtleCoin core 0.8.3 (turtle-service and TurtleCoind).
+
+### Sha256
+
+TurtleCoin-Nest-0.35-Windows.zip:
+`7c41be52bf33af36172f12f9aac9ce5d04cb4b6942dbcf24b2f6092f8964ea19`
+
+TurtleCoin-Nest-0.35-Mac.zip:
+`8ce0a26cde80fd4f12e02382257195dd43865e94adf1acd20752be0033db2623`
+
+TurtleCoin-Nest-0.35-Linux.tar.gz:
+`9bd3056583079a7278f539ce07c8d67bd0af25d377898fb97061a76f643018b5`
+
 ## 0.34
 
 ### Release notes

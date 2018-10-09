@@ -1,3 +1,8 @@
+// Copyright (c) 2018, The TurtleCoin Developers
+//
+// Please see the included LICENSE file for more information.
+//
+
 // Package walletdmanager handles the management of the wallet and the communication with the core wallet software
 package walletdmanager
 

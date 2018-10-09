@@ -45,7 +45,8 @@ Important notes:
 
 ## Upgrade
 
-Just download the new release and follow the same steps as [Installation](#installation). Just make sure you don't delete your wallet files in the old folder (.wallet files) and you copy them or move them to a new folder.
+Just download the new release and follow the same steps as [Installation](#installation).
+If you are on Windows or Linux, move your wallets (.wallet) and settings.db files from the old Nest folder to the new. Then you can delete the old folder. (on Mac, you do not need to move the settings.db file as it stays in ~/Library/Application Support/TurtleCoin-Nest/).
 
 ## Screenshots
 

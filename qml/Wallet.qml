@@ -1,3 +1,8 @@
+// Copyright (c) 2018, The TurtleCoin Developers
+//
+// Please see the included LICENSE file for more information.
+//
+
 import QtQuick.Window 2.2
 import QtQuick 2.7
 import QtQuick.Controls 2.3

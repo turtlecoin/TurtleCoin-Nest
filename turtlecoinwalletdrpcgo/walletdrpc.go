@@ -1,3 +1,8 @@
+// Copyright (c) 2018, The TurtleCoin Developers
+//
+// Please see the included LICENSE file for more information.
+//
+
 // Package turtlecoinwalletdrpcgo handles the the rpc connection between your app and turtle-service
 package turtlecoinwalletdrpcgo
 
