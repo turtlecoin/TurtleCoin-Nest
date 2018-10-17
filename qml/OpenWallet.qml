@@ -1216,7 +1216,7 @@ Rectangle {
             radioButtonUseRemoteNode.checked = useRemote;
         }
 
-        onDisplayInfoDialog: {
+        onDisplayInfoScreen: {
             infoDialog.show();
         }
     }

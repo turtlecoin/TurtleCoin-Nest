@@ -555,6 +555,39 @@ Rectangle {
             font.bold: switchNumberTransactions.checked
         }
 
+        Button {
+            id: buttonExportListTransactions
+            text: "download history"
+            anchors.verticalCenter: textListTransactionLimitedDescr.verticalCenter
+            anchors.left: textListTransactionAll.right
+            anchors.leftMargin: 50
+            height: 25
+            enabled: true
+
+            contentItem: Text {
+                text: buttonExportListTransactions.text
+                font.pixelSize: 12
+                font.family: "Arial"
+                font.bold: true
+                opacity: enabled ? 1.0 : 0.3
+                color: buttonExportListTransactions.down ? "#dddddd" : "#ffffff"
+                horizontalAlignment: Text.AlignHCenter
+                verticalAlignment: Text.AlignVCenter
+            }
+
+            background: Rectangle {
+                implicitWidth: 70
+                height: buttonExportListTransactions.height
+                opacity: enabled ? 1 : 0.3
+                radius: 6
+                color: buttonExportListTransactions.down ? "#383838" : "#444444"
+            }
+
+            onClicked: {
+                QmlBridge.exportListTransactions();
+            }
+        }
+
         Connections {
             target: QmlBridge
             onClearListTransactions: {

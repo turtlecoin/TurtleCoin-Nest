@@ -9,6 +9,7 @@ import (
 	"TurtleCoin-Nest/turtlecoinwalletdrpcgo"
 	"TurtleCoin-Nest/walletdmanager"
 	"database/sql"
+	"encoding/csv"
 	"encoding/json"
 	"io"
 	"io/ioutil"
@@ -82,6 +83,9 @@ type QmlBridge struct {
 	_ func(syncing string, syncingInfo string) `signal:"displaySyncingInfo"`
 	_ func(errorText string,
 		errorInformativeText string) `signal:"displayErrorDialog"`
+	_ func(title string,
+		mainText string,
+		informativeText string) `signal:"displayInfoDialog"`
 	_ func() `signal:"clearTransferAmount"`
 	_ func() `signal:"askForFusion"`
 	_ func() `signal:"clearListTransactions"`
@@ -109,7 +113,7 @@ type QmlBridge struct {
 	_ func(fee string)                      `signal:"displayDefaultFee"`
 	_ func(nodeFee string)                  `signal:"displayNodeFee"`
 	_ func(index int, confirmations string) `signal:"updateConfirmationsOfTransaction"`
-	_ func()                                `signal:"displayInfoDialog"`
+	_ func()                                `signal:"displayInfoScreen"`
 	_ func(dbID int,
 		name string,
 		address string,
@@ -162,6 +166,7 @@ type QmlBridge struct {
 		paymentID string) `slot:"saveAddress"`
 	_ func()         `slot:"fillListSavedAddresses"`
 	_ func(dbID int) `slot:"deleteSavedAddress"`
+	_ func()         `slot:"exportListTransactions"`
 
 	_ func(object *core.QObject) `slot:"registerToGo"`
 	_ func(objectName string)    `slot:"deregisterToGo"`
@@ -280,7 +285,7 @@ func main() {
 	go func() {
 		newVersionAvailable, urlNewVersion = checkIfNewReleaseAvailableOnGithub(versionNest)
 		if newVersionAvailable != "" {
-			qmlBridge.DisplayInfoDialog()
+			qmlBridge.DisplayInfoScreen()
 		}
 	}()
 
@@ -443,6 +448,10 @@ func connectQMLToGOFunctions() {
 
 	qmlBridge.ConnectDeleteSavedAddress(func(dbID int) {
 		deleteSavedAddressFromDB(dbID)
+	})
+
+	qmlBridge.ConnectExportListTransactions(func() {
+		exportListTransactions()
 	})
 }
 
@@ -792,6 +801,76 @@ func saveAddress(name string, address string, paymentID string) {
 	} else {
 		recordSavedAddressToDB(name, address, paymentID)
 		qmlBridge.DisplayPopup("Saved!", 1500)
+	}
+}
+
+func exportListTransactions() {
+
+	pathToExportFile := "transactions." + walletdmanager.WalletFilename + ".csv"
+
+	if isPlatformDarwin {
+		usr, err := user.Current()
+		if err != nil {
+			log.Fatal(err)
+		}
+		pathToExportFile = usr.HomeDir + "/" + pathToExportFile
+	} else {
+		pathToAppDirectory, _ := filepath.Abs(filepath.Dir(os.Args[0]))
+		if isPlatformWindows {
+			pathToExportFile = pathToAppDirectory + "\\" + pathToExportFile
+		} else {
+			// linux
+			pathToExportFile = pathToAppDirectory + "/" + pathToExportFile
+		}
+	}
+
+	fileExport, err := os.Create(pathToExportFile)
+	if err != nil {
+		log.Error("error creating export file. err: ", err)
+		qmlBridge.DisplayErrorDialog("error creating export file", err.Error())
+		return
+	}
+	defer fileExport.Close()
+
+	writer := csv.NewWriter(fileExport)
+
+	records := [][]string{
+		{"Index", "Timestamp", "Readable Timestamp", "Block", "Amount", "Fee", "TxID", "PaymentID", "Confirmations"},
+	}
+
+	inversedTransactionIndex := len(transfers)
+
+	for _, transfer := range transfers {
+		indexString := strconv.Itoa(inversedTransactionIndex)
+		timestampString := strconv.FormatInt(transfer.Timestamp.Unix(), 10)
+		readableTimestampString := transfer.Timestamp.Format("2006-01-02 15:04:05")
+		blockString := strconv.Itoa(transfer.Block)
+		amountString := strconv.FormatFloat(transfer.Amount, 'f', -1, 64)
+		feeString := strconv.FormatFloat(transfer.Fee, 'f', 2, 64)
+		txIDString := transfer.TxID
+		paymentIDString := transfer.PaymentID
+		confirmationsString := strconv.Itoa(transfer.Confirmations)
+
+		records = append(records, []string{indexString, timestampString, readableTimestampString, blockString, amountString, feeString, txIDString, paymentIDString, confirmationsString})
+
+		inversedTransactionIndex--
+	}
+
+	for _, record := range records {
+		if err := writer.Write(record); err != nil {
+			log.Error("error writing record to csv. err: ", err)
+			qmlBridge.DisplayErrorDialog("error exporting record", err.Error())
+			return
+		}
+	}
+
+	writer.Flush()
+
+	if err := writer.Error(); err != nil {
+		log.Error("error writing to the csv file. err: ", err)
+		qmlBridge.DisplayErrorDialog("error writing to the csv file", err.Error())
+	} else {
+		qmlBridge.DisplayInfoDialog("Success", "list of transactions successfully exported to", pathToExportFile)
 	}
 }
 
