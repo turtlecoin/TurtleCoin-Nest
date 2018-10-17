@@ -169,7 +169,14 @@ type QmlBridge struct {
 
 func main() {
 
-	pathToLogFile := logFileFilename
+	logsFolder := "logs"
+
+	pathToLogFile := ""
+	if isPlatformWindows {
+		pathToLogFile = logsFolder + "\\" + logFileFilename
+	} else {
+		pathToLogFile = logsFolder + "/" + logFileFilename
+	}
 	pathToDB := dbFilename
 	pathToHomeDir := ""
 	pathToAppDirectory, err := filepath.Abs(filepath.Dir(os.Args[0]))
@@ -178,6 +185,7 @@ func main() {
 	}
 
 	if isPlatformDarwin {
+		// mac
 		usr, err := user.Current()
 		if err != nil {
 			log.Fatal(err)
@@ -185,11 +193,26 @@ func main() {
 		pathToHomeDir = usr.HomeDir
 		pathToAppFolder := pathToHomeDir + "/Library/Application Support/TurtleCoin-Nest"
 		os.Mkdir(pathToAppFolder, os.ModePerm)
-		pathToLogFile = pathToAppFolder + "/" + logFileFilename
 		pathToDB = pathToAppFolder + "/" + pathToDB
-	} else if isPlatformLinux {
-		pathToLogFile = pathToAppDirectory + "/" + logFileFilename
-		pathToDB = pathToAppDirectory + "/" + pathToDB
+
+		pathToLogsFolder := pathToAppFolder + "/" + logsFolder
+		os.Mkdir(pathToLogsFolder, os.ModePerm)
+		pathToLogFile = pathToAppFolder + "/" + pathToLogFile
+	} else {
+		// win and linux
+		pathToLogsFolder := ""
+
+		if isPlatformLinux {
+			// linux
+			pathToLogsFolder = pathToAppDirectory + "/" + logsFolder
+			pathToLogFile = pathToAppDirectory + "/" + pathToLogFile
+			pathToDB = pathToAppDirectory + "/" + pathToDB
+		} else if isPlatformWindows {
+			// win
+			pathToLogsFolder = pathToAppDirectory + "\\" + logsFolder
+		}
+
+		os.Mkdir(pathToLogsFolder, os.ModePerm)
 	}
 
 	logFile, err := os.OpenFile(pathToLogFile, os.O_APPEND|os.O_WRONLY|os.O_CREATE, 0600)
