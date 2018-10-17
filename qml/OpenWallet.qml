@@ -285,7 +285,7 @@ Rectangle {
                 verticalAlignment: Text.AlignVCenter
 
                 onTextChanged: {
-                    buttonOpenWallet.enabled = textInputExistingWalletPath.text != "" && textInputExistingWalletPassword.text != ""
+                    buttonOpenWallet.enabled = textInputExistingWalletPath.text != ""
                 }
             }
 
