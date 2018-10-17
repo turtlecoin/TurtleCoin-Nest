@@ -387,7 +387,7 @@ func StartWalletd(walletPath string, walletPassword string, useRemoteNode bool, 
 		}
 		hideCmdWindowIfNeeded(cmdTurtleCoind)
 
-		turtleCoindAllSessionsLogFile, err := os.Create(pathToLogTurtleCoindAllSessions)
+		turtleCoindAllSessionsLogFile, err := os.OpenFile(pathToLogTurtleCoindAllSessions, os.O_APPEND|os.O_WRONLY|os.O_CREATE, 0600)
 		if err != nil {
 			log.Error(err)
 		}
