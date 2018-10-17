@@ -44,12 +44,5 @@ func requestListRemoteNodes() (remoteNodes []node) {
 		remoteNodes = theNodes.Nodes
 	}
 
-	// add an item for displaying the custom node in the dropdown list
-	var customNode node
-	customNode.Name = "Custom (change in settings)"
-	customNode.URL = "Custom (change in settings)"
-
-	remoteNodes = append(remoteNodes, customNode)
-
 	return remoteNodes
 }

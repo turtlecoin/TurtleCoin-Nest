@@ -1063,13 +1063,19 @@ func requestRateTRTL() {
 func getAndDisplayListRemoteNodes() {
 	remoteNodes = requestListRemoteNodes()
 
+	// add an item for displaying the custom node in the dropdown list
+	var customNode node
+	customNode.Name = "Custom (change in settings)"
+	customNode.URL = customNode.Name
+	remoteNodes = append(remoteNodes, customNode)
+
 	// to preselect the node previously selected by the user
 	addressPreferedNode, portPreferedNode := getSelectedRemoteDaemonFromDB()
 
 	preferedNodeFound := false
 
 	for index, aNode := range remoteNodes {
-		qmlBridge.AddRemoteNodeToList(aNode.URL)
+		qmlBridge.AddRemoteNodeToList(aNode.Name)
 
 		if addressPreferedNode != "" && aNode.URL == addressPreferedNode && aNode.Port == uint64(portPreferedNode) {
 			indexSelectedRemoteNode = index
