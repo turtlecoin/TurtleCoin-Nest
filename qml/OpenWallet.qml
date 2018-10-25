@@ -285,7 +285,7 @@ Rectangle {
                 verticalAlignment: Text.AlignVCenter
 
                 onTextChanged: {
-                    buttonOpenWallet.enabled = textInputExistingWalletPath.text != "" && textInputExistingWalletPassword.text != ""
+                    buttonOpenWallet.enabled = textInputExistingWalletPath.text != ""
                 }
             }
 
@@ -341,7 +341,7 @@ Rectangle {
                 verticalAlignment: Text.AlignVCenter
 
                 onTextChanged: {
-                    buttonOpenWallet.enabled = textInputExistingWalletPath.text != "" && textInputExistingWalletPassword.text != ""
+                    buttonOpenWallet.enabled = textInputExistingWalletPath.text != ""
                 }
 
                 Keys.onReturnPressed: {
@@ -1216,7 +1216,7 @@ Rectangle {
             radioButtonUseRemoteNode.checked = useRemote;
         }
 
-        onDisplayInfoDialog: {
+        onDisplayInfoScreen: {
             infoDialog.show();
         }
     }

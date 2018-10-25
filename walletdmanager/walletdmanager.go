@@ -286,10 +286,19 @@ func StartWalletd(walletPath string, walletPassword string, useRemoteNode bool, 
 		return errors.New(errorMessage)
 	}
 
-	pathToLogWalletdCurrentSession := logWalletdCurrentSessionFilename
-	pathToLogWalletdAllSessions := logWalletdAllSessionsFilename
-	pathToLogTurtleCoindCurrentSession := logTurtleCoindCurrentSessionFilename
-	pathToLogTurtleCoindAllSessions := logTurtleCoindAllSessionsFilename
+	logsFolder := "logs"
+
+	directorySeparator := "/"
+
+	if isPlatformWindows {
+		directorySeparator = "\\"
+	}
+
+	pathToLogWalletdCurrentSession := logsFolder + directorySeparator + logWalletdCurrentSessionFilename
+	pathToLogWalletdAllSessions := logsFolder + directorySeparator + logWalletdAllSessionsFilename
+	pathToLogTurtleCoindCurrentSession := logsFolder + directorySeparator + logTurtleCoindCurrentSessionFilename
+	pathToLogTurtleCoindAllSessions := logsFolder + directorySeparator + logTurtleCoindAllSessionsFilename
+
 	pathToWalletd := "./" + walletdCommandName
 	pathToTurtleCoind := "./" + turtlecoindCommandName
 	checkpointsCSVFile := "checkpoints.csv"
@@ -322,10 +331,10 @@ func StartWalletd(walletPath string, walletPassword string, useRemoteNode bool, 
 		pathToHomeDir := usr.HomeDir
 		pathToAppLibDir := pathToHomeDir + "/Library/Application Support/TurtleCoin-Nest"
 
-		pathToLogWalletdCurrentSession = pathToAppLibDir + "/" + logWalletdCurrentSessionFilename
-		pathToLogWalletdAllSessions = pathToAppLibDir + "/" + logWalletdAllSessionsFilename
-		pathToLogTurtleCoindCurrentSession = pathToAppLibDir + "/" + logTurtleCoindCurrentSessionFilename
-		pathToLogTurtleCoindAllSessions = pathToAppLibDir + "/" + logTurtleCoindAllSessionsFilename
+		pathToLogWalletdCurrentSession = pathToAppLibDir + "/" + pathToLogWalletdCurrentSession
+		pathToLogWalletdAllSessions = pathToAppLibDir + "/" + pathToLogWalletdAllSessions
+		pathToLogTurtleCoindCurrentSession = pathToAppLibDir + "/" + pathToLogTurtleCoindCurrentSession
+		pathToLogTurtleCoindAllSessions = pathToAppLibDir + "/" + pathToLogTurtleCoindAllSessions
 
 		if pathToWallet == WalletFilename {
 			// if comes from createWallet, so it is not a full path, just a filename
@@ -335,10 +344,10 @@ func StartWalletd(walletPath string, walletPassword string, useRemoteNode bool, 
 		pathToWalletd = pathToAppDirectory + "/" + walletdCommandName
 		pathToTurtleCoind = pathToAppDirectory + "/" + turtlecoindCommandName
 		pathToCheckpointsCSV = pathToAppDirectory + "/" + checkpointsCSVFile
-		pathToLogWalletdCurrentSession = pathToAppDirectory + "/" + logWalletdCurrentSessionFilename
-		pathToLogWalletdAllSessions = pathToAppDirectory + "/" + logWalletdAllSessionsFilename
-		pathToLogTurtleCoindCurrentSession = pathToAppDirectory + "/" + logTurtleCoindCurrentSessionFilename
-		pathToLogTurtleCoindAllSessions = pathToAppDirectory + "/" + logTurtleCoindAllSessionsFilename
+		pathToLogWalletdCurrentSession = pathToAppDirectory + "/" + pathToLogWalletdCurrentSession
+		pathToLogWalletdAllSessions = pathToAppDirectory + "/" + pathToLogWalletdAllSessions
+		pathToLogTurtleCoindCurrentSession = pathToAppDirectory + "/" + pathToLogTurtleCoindCurrentSession
+		pathToLogTurtleCoindAllSessions = pathToAppDirectory + "/" + pathToLogTurtleCoindAllSessions
 		if pathToWallet == WalletFilename {
 			// if comes from createWallet, so it is not a full path, just a filename
 			pathToWallet = pathToAppDirectory + "/" + pathToWallet
@@ -378,7 +387,7 @@ func StartWalletd(walletPath string, walletPassword string, useRemoteNode bool, 
 		}
 		hideCmdWindowIfNeeded(cmdTurtleCoind)
 
-		turtleCoindAllSessionsLogFile, err := os.Create(pathToLogTurtleCoindAllSessions)
+		turtleCoindAllSessionsLogFile, err := os.OpenFile(pathToLogTurtleCoindAllSessions, os.O_APPEND|os.O_WRONLY|os.O_CREATE, 0600)
 		if err != nil {
 			log.Error(err)
 		}
@@ -639,8 +648,16 @@ func CreateWallet(walletFilename string, walletPassword string, walletPasswordCo
 		return errors.New(errorMessage)
 	}
 
-	pathToLogWalletdCurrentSession := logWalletdCurrentSessionFilename
-	pathToLogWalletdAllSessions := logWalletdAllSessionsFilename
+	logsFolder := "logs"
+
+	directorySeparator := "/"
+
+	if isPlatformWindows {
+		directorySeparator = "\\"
+	}
+
+	pathToLogWalletdCurrentSession := logsFolder + directorySeparator + logWalletdCurrentSessionFilename
+	pathToLogWalletdAllSessions := logsFolder + directorySeparator + logWalletdAllSessionsFilename
 	pathToWalletd := "./" + walletdCommandName
 	pathToWallet := walletFilename
 
@@ -660,13 +677,13 @@ func CreateWallet(walletFilename string, walletPassword string, walletPasswordCo
 		pathToHomeDir := usr.HomeDir
 		pathToAppLibDir := pathToHomeDir + "/Library/Application Support/TurtleCoin-Nest"
 
-		pathToLogWalletdCurrentSession = pathToAppLibDir + "/" + logWalletdCurrentSessionFilename
-		pathToLogWalletdAllSessions = pathToAppLibDir + "/" + logWalletdAllSessionsFilename
+		pathToLogWalletdCurrentSession = pathToAppLibDir + "/" + pathToLogWalletdCurrentSession
+		pathToLogWalletdAllSessions = pathToAppLibDir + "/" + pathToLogWalletdAllSessions
 		pathToWallet = pathToHomeDir + "/" + walletFilename
 	} else if isPlatformLinux {
 		pathToWalletd = pathToAppDirectory + "/" + walletdCommandName
-		pathToLogWalletdCurrentSession = pathToAppDirectory + "/" + logWalletdCurrentSessionFilename
-		pathToLogWalletdAllSessions = pathToAppDirectory + "/" + logWalletdAllSessionsFilename
+		pathToLogWalletdCurrentSession = pathToAppDirectory + "/" + pathToLogWalletdCurrentSession
+		pathToLogWalletdAllSessions = pathToAppDirectory + "/" + pathToLogWalletdAllSessions
 		pathToWallet = pathToAppDirectory + "/" + walletFilename
 	}
 
@@ -789,8 +806,7 @@ func RequestConnectionInfo() (syncing string, walletBlockCount int, knownBlockCo
 	if knownBlockCount == 0 {
 		WalletdSynced = false
 		syncing = "Getting block count..." + stringWait
-		//} else if walletBlockCount < knownBlockCount-1 || walletBlockCount > knownBlockCount+10 || localDaemonBlockCount < knownBlockCount-1 || localDaemonBlockCount > knownBlockCount+10 {
-	} else if walletBlockCount < knownBlockCount-1 || walletBlockCount > knownBlockCount+10 {
+	} else if walletBlockCount < knownBlockCount-1 || walletBlockCount > knownBlockCount+10 || localDaemonBlockCount < knownBlockCount-1 || localDaemonBlockCount > knownBlockCount+10 {
 		// second condition handles cases when knownBlockCount is off and smaller than the blockCount
 		WalletdSynced = false
 		syncing = "Syncing..." + stringWait

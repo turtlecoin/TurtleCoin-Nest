@@ -507,7 +507,7 @@ Rectangle {
         Text {
             id: textListTransactionLimitedDescr
             color: "#cfcfcf"
-            text: "Show transactions:"
+            text: "Show:"
             anchors.left: rectangleListTransactions.left
             anchors.leftMargin: 5
             anchors.top: rectangleListTransactions.bottom
@@ -553,6 +553,39 @@ Rectangle {
             font.pixelSize: 14
             horizontalAlignment: Text.AlignLeft
             font.bold: switchNumberTransactions.checked
+        }
+
+        Button {
+            id: buttonExportListTransactions
+            text: "download history"
+            anchors.verticalCenter: textListTransactionLimitedDescr.verticalCenter
+            anchors.left: textListTransactionAll.right
+            anchors.leftMargin: 42
+            height: 25
+            enabled: true
+
+            contentItem: Text {
+                text: buttonExportListTransactions.text
+                font.pixelSize: 12
+                font.family: "Arial"
+                font.bold: true
+                opacity: enabled ? 1.0 : 0.3
+                color: buttonExportListTransactions.down ? "#dddddd" : "#ffffff"
+                horizontalAlignment: Text.AlignHCenter
+                verticalAlignment: Text.AlignVCenter
+            }
+
+            background: Rectangle {
+                implicitWidth: 70
+                height: buttonExportListTransactions.height
+                opacity: enabled ? 1 : 0.3
+                radius: 6
+                color: buttonExportListTransactions.down ? "#383838" : "#444444"
+            }
+
+            onClicked: {
+                QmlBridge.exportListTransactions();
+            }
         }
 
         Connections {
@@ -1069,7 +1102,7 @@ Rectangle {
             id: textConnectionInfo
             color: "#ffffff"
             text: ""
-            font.pixelSize: 13
+            font.pixelSize: 12
             horizontalAlignment: Text.AlignRight
             anchors.verticalCenter: parent.verticalCenter
             font.family: "Arial"
@@ -1082,12 +1115,12 @@ Rectangle {
             color: "#ffffff"
             text: "Syncing..."
             font.bold: true
-            font.pixelSize: 13
+            font.pixelSize: 12
             horizontalAlignment: Text.AlignRight
             anchors.verticalCenter: parent.verticalCenter
             font.family: "Arial"
             anchors.right: textConnectionInfo.left
-            anchors.rightMargin: 20
+            anchors.rightMargin: 15
         }
     }
 

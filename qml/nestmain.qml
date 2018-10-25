@@ -68,10 +68,10 @@ ApplicationWindow {
             dialogInfo.informativeText = "";
         }
 
-        function show(title, errorText, errorInformativeText) {
+        function show(title, mainText, informativeText) {
             dialogInfo.title = title;
-            dialogInfo.text = errorText;
-            dialogInfo.informativeText = errorInformativeText;
+            dialogInfo.text = mainText;
+            dialogInfo.informativeText = informativeText;
             dialogInfo.open();
         }
 
@@ -86,6 +86,10 @@ ApplicationWindow {
 
         onDisplayErrorDialog: {
             dialogInfo.showError(errorText, errorInformativeText);
+        }
+
+        onDisplayInfoDialog: {
+            dialogInfo.show(title, mainText, informativeText);
         }
 
         onDisplayOpenWalletScreen: {

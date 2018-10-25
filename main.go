@@ -8,7 +8,7 @@ package main
 import (
 	"TurtleCoin-Nest/turtlecoinwalletdrpcgo"
 	"TurtleCoin-Nest/walletdmanager"
-	"database/sql"
+	"encoding/csv"
 	"encoding/json"
 	"io"
 	"io/ioutil"
@@ -24,7 +24,6 @@ import (
 	"strings"
 	"time"
 
-	"github.com/atotto/clipboard"
 	"github.com/dustin/go-humanize"
 	_ "github.com/mattn/go-sqlite3"
 	log "github.com/sirupsen/logrus"
@@ -35,8 +34,6 @@ import (
 )
 
 var (
-	// qmlObjects = make(map[string]*core.QObject)
-	qmlBridge                   *QmlBridge
 	transfers                   []turtlecoinwalletdrpcgo.Transfer
 	remoteNodes                 []node
 	indexSelectedRemoteNode     = 0
@@ -44,7 +41,6 @@ var (
 	tickerRefreshConnectionInfo *time.Ticker
 	tickerRefreshNodeFeeInfo    *time.Ticker
 	tickerSaveWallet            *time.Ticker
-	db                          *sql.DB
 	useRemoteNode               = true
 	useCheckpoints              = true
 	displayFiatConversion       = false
@@ -58,118 +54,16 @@ var (
 	urlNewVersion               = ""
 )
 
-// QmlBridge is the bridge between qml and go
-type QmlBridge struct {
-	core.QObject
-
-	// go to qml
-	_ func(balance string,
-		balanceUSD string) `signal:"displayTotalBalance"`
-	_ func(data string) `signal:"displayAvailableBalance"`
-	_ func(data string) `signal:"displayLockedBalance"`
-	_ func(address string,
-		wallet string,
-		displayFiatConversion bool) `signal:"displayAddress"`
-	_ func(paymentID string,
-		transactionID string,
-		amount string,
-		confirmations string,
-		time string,
-		number string) `signal:"addTransactionToList"`
-	_ func(nodeURL string)                     `signal:"addRemoteNodeToList"`
-	_ func(index int)                          `signal:"setSelectedRemoteNode"`
-	_ func(text string, time int)              `signal:"displayPopup"`
-	_ func(syncing string, syncingInfo string) `signal:"displaySyncingInfo"`
-	_ func(errorText string,
-		errorInformativeText string) `signal:"displayErrorDialog"`
-	_ func() `signal:"clearTransferAmount"`
-	_ func() `signal:"askForFusion"`
-	_ func() `signal:"clearListTransactions"`
-	_ func(filename string,
-		privateViewKey string,
-		privateSpendKey string,
-		walletAddress string) `signal:"displayPrivateKeys"`
-	_ func(filename string,
-		mnemonicSeed string,
-		walletAddress string) `signal:"displaySeed"`
-	_ func()                            `signal:"displayOpenWalletScreen"`
-	_ func()                            `signal:"displayMainWalletScreen"`
-	_ func()                            `signal:"finishedLoadingWalletd"`
-	_ func()                            `signal:"finishedCreatingWallet"`
-	_ func()                            `signal:"finishedSendingTransaction"`
-	_ func(pathToPreviousWallet string) `signal:"displayPathToPreviousWallet"`
-	_ func(walletLocation string)       `signal:"displayWalletCreationLocation"`
-	_ func(useRemote bool)              `signal:"displayUseRemoteNode"`
-	_ func()                            `signal:"hideSettingsScreen"`
-	_ func()                            `signal:"displaySettingsScreen"`
-	_ func(displayFiat bool)            `signal:"displaySettingsValues"`
-	_ func(remoteNodeAddress string,
-		remoteNodePort string) `signal:"displaySettingsRemoteDaemonInfo"`
-	_ func(fullBalance string)              `signal:"displayFullBalanceInTransferAmount"`
-	_ func(fee string)                      `signal:"displayDefaultFee"`
-	_ func(nodeFee string)                  `signal:"displayNodeFee"`
-	_ func(index int, confirmations string) `signal:"updateConfirmationsOfTransaction"`
-	_ func()                                `signal:"displayInfoDialog"`
-	_ func(dbID int,
-		name string,
-		address string,
-		paymentID string) `signal:"addSavedAddressToList"`
-
-	// qml to go
-	_ func(msg string)           `slot:"log"`
-	_ func(transactionID string) `slot:"clickedButtonExplorer"`
-	_ func(url string)           `slot:"goToWebsite"`
-	_ func(transactionID string) `slot:"clickedButtonCopyTx"`
-	_ func()                     `slot:"clickedButtonCopyAddress"`
-	_ func()                     `slot:"clickedButtonCopyKeys"`
-	_ func(stringToCopy string)  `slot:"clickedButtonCopy"`
-	_ func(transferAddress string,
-		transferAmount string,
-		transferPaymentID string,
-		transferFee string) `slot:"clickedButtonSend"`
-	_ func()                                           `slot:"clickedButtonBackupWallet"`
-	_ func()                                           `slot:"clickedCloseWallet"`
-	_ func(pathToWallet string, passwordWallet string) `slot:"clickedButtonOpen"`
-	_ func(filenameWallet string,
-		passwordWallet string,
-		confirmPasswordWallet string) `slot:"clickedButtonCreate"`
-	_ func(filenameWallet string,
-		passwordWallet string,
-		privateViewKey string,
-		privateSpendKey string,
-		mnemonicSeed string,
-		confirmPasswordWallet string,
-		scanHeight string) `slot:"clickedButtonImport"`
-	_ func(remote bool)              `slot:"choseRemote"`
-	_ func(index int)                `slot:"selectedRemoteNode"`
-	_ func(amountTRTL string) string `slot:"getTransferAmountUSD"`
-	_ func()                         `slot:"clickedCloseSettings"`
-	_ func()                         `slot:"clickedSettingsButton"`
-	_ func(displayFiat bool)         `slot:"choseDisplayFiat"`
-	_ func(checkpoints bool)         `slot:"choseCheckpoints"`
-	_ func(daemonAddress string,
-		daemonPort string) `slot:"saveRemoteDaemonInfo"`
-	_ func()                   `slot:"resetRemoteDaemonInfo"`
-	_ func(transferFee string) `slot:"getFullBalanceAndDisplayInTransferAmount"`
-	_ func()                   `slot:"getDefaultFeeAndDisplay"`
-	_ func(limit bool)         `slot:"limitDisplayTransactions"`
-	_ func() string            `slot:"getVersion"`
-	_ func() string            `slot:"getNewVersion"`
-	_ func() string            `slot:"getNewVersionURL"`
-	_ func()                   `slot:"optimizeWalletWithFusion"`
-	_ func(name string,
-		address string,
-		paymentID string) `slot:"saveAddress"`
-	_ func()         `slot:"fillListSavedAddresses"`
-	_ func(dbID int) `slot:"deleteSavedAddress"`
-
-	_ func(object *core.QObject) `slot:"registerToGo"`
-	_ func(objectName string)    `slot:"deregisterToGo"`
-}
-
 func main() {
 
-	pathToLogFile := logFileFilename
+	logsFolder := "logs"
+
+	pathToLogFile := ""
+	if isPlatformWindows {
+		pathToLogFile = logsFolder + "\\" + logFileFilename
+	} else {
+		pathToLogFile = logsFolder + "/" + logFileFilename
+	}
 	pathToDB := dbFilename
 	pathToHomeDir := ""
 	pathToAppDirectory, err := filepath.Abs(filepath.Dir(os.Args[0]))
@@ -178,6 +72,7 @@ func main() {
 	}
 
 	if isPlatformDarwin {
+		// mac
 		usr, err := user.Current()
 		if err != nil {
 			log.Fatal(err)
@@ -185,11 +80,26 @@ func main() {
 		pathToHomeDir = usr.HomeDir
 		pathToAppFolder := pathToHomeDir + "/Library/Application Support/TurtleCoin-Nest"
 		os.Mkdir(pathToAppFolder, os.ModePerm)
-		pathToLogFile = pathToAppFolder + "/" + logFileFilename
 		pathToDB = pathToAppFolder + "/" + pathToDB
-	} else if isPlatformLinux {
-		pathToLogFile = pathToAppDirectory + "/" + logFileFilename
-		pathToDB = pathToAppDirectory + "/" + pathToDB
+
+		pathToLogsFolder := pathToAppFolder + "/" + logsFolder
+		os.Mkdir(pathToLogsFolder, os.ModePerm)
+		pathToLogFile = pathToAppFolder + "/" + pathToLogFile
+	} else {
+		// win and linux
+		pathToLogsFolder := ""
+
+		if isPlatformLinux {
+			// linux
+			pathToLogsFolder = pathToAppDirectory + "/" + logsFolder
+			pathToLogFile = pathToAppDirectory + "/" + pathToLogFile
+			pathToDB = pathToAppDirectory + "/" + pathToDB
+		} else if isPlatformWindows {
+			// win
+			pathToLogsFolder = pathToAppDirectory + "\\" + logsFolder
+		}
+
+		os.Mkdir(pathToLogsFolder, os.ModePerm)
 	}
 
 	logFile, err := os.OpenFile(pathToLogFile, os.O_APPEND|os.O_WRONLY|os.O_CREATE, 0600)
@@ -257,7 +167,7 @@ func main() {
 	go func() {
 		newVersionAvailable, urlNewVersion = checkIfNewReleaseAvailableOnGithub(versionNest)
 		if newVersionAvailable != "" {
-			qmlBridge.DisplayInfoDialog()
+			qmlBridge.DisplayInfoScreen()
 		}
 	}()
 
@@ -267,160 +177,6 @@ func main() {
 
 	walletdmanager.GracefullyQuitWalletd()
 	walletdmanager.GracefullyQuitTurtleCoind()
-}
-
-func connectQMLToGOFunctions() {
-
-	qmlBridge.ConnectLog(func(msg string) {
-		log.Info("QML: ", msg)
-	})
-
-	qmlBridge.ConnectClickedButtonCopyAddress(func() {
-		clipboard.WriteAll(walletdmanager.WalletAddress)
-		qmlBridge.DisplayPopup("Copied!", 1500)
-	})
-
-	qmlBridge.ConnectClickedButtonCopyKeys(func() {
-		clipboard.WriteAll(stringBackupKeys)
-	})
-
-	qmlBridge.ConnectClickedButtonCopy(func(stringToCopy string) {
-		clipboard.WriteAll(stringToCopy)
-	})
-
-	qmlBridge.ConnectClickedButtonCopyTx(func(transactionID string) {
-		clipboard.WriteAll(transactionID)
-		qmlBridge.DisplayPopup("Copied!", 1500)
-	})
-
-	qmlBridge.ConnectClickedButtonExplorer(func(transactionID string) {
-		url := urlBlockExplorer + "?hash=" + transactionID + "#blockchain_transaction"
-		successOpenBrowser := openBrowser(url)
-		if !successOpenBrowser {
-			log.Error("failure opening browser, url: " + url)
-		}
-	})
-
-	qmlBridge.ConnectGoToWebsite(func(url string) {
-		successOpenBrowser := openBrowser(url)
-		if !successOpenBrowser {
-			log.Error("failure opening browser, url: " + url)
-		}
-	})
-
-	qmlBridge.ConnectClickedButtonSend(func(transferAddress string, transferAmount string, transferPaymentID string, transferFee string) {
-		go func() {
-			transfer(transferAddress, transferAmount, transferPaymentID, transferFee)
-		}()
-	})
-
-	qmlBridge.ConnectGetTransferAmountUSD(func(amountTRTL string) string {
-		return amountStringUSDToTRTL(amountTRTL)
-	})
-
-	qmlBridge.ConnectClickedButtonBackupWallet(func() {
-		showWalletPrivateInfo()
-	})
-
-	qmlBridge.ConnectClickedButtonOpen(func(pathToWallet string, passwordWallet string) {
-		go func() {
-			recordPathWalletToDB(pathToWallet)
-			startWalletWithWalletInfo(pathToWallet, passwordWallet)
-		}()
-	})
-
-	qmlBridge.ConnectClickedButtonCreate(func(filenameWallet string, passwordWallet string, confirmPasswordWallet string) {
-		go func() {
-			createWalletWithWalletInfo(filenameWallet, passwordWallet, confirmPasswordWallet)
-		}()
-	})
-
-	qmlBridge.ConnectClickedButtonImport(func(filenameWallet string, passwordWallet string, privateViewKey string, privateSpendKey string, mnemonicSeed string, confirmPasswordWallet string, scanHeight string) {
-		go func() {
-			importWalletWithWalletInfo(filenameWallet, passwordWallet, confirmPasswordWallet, privateViewKey, privateSpendKey, mnemonicSeed, scanHeight)
-		}()
-	})
-
-	qmlBridge.ConnectClickedCloseWallet(func() {
-		closeWallet()
-	})
-
-	qmlBridge.ConnectChoseRemote(func(remote bool) {
-		useRemoteNode = remote
-		recordUseRemoteToDB(useRemoteNode)
-	})
-
-	qmlBridge.ConnectSelectedRemoteNode(func(index int) {
-		indexSelectedRemoteNode = index
-
-		node := remoteNodes[indexSelectedRemoteNode]
-		recordSelectedRemoteDaemonToDB(node)
-	})
-
-	qmlBridge.ConnectClickedCloseSettings(func() {
-		qmlBridge.HideSettingsScreen()
-	})
-
-	qmlBridge.ConnectClickedSettingsButton(func() {
-		qmlBridge.DisplaySettingsScreen()
-	})
-
-	qmlBridge.ConnectChoseDisplayFiat(func(displayFiat bool) {
-		displayFiatConversion = displayFiat
-		recordDisplayConversionToDB(displayFiat)
-	})
-
-	qmlBridge.ConnectChoseCheckpoints(func(checkpoints bool) {
-		useCheckpoints = checkpoints
-	})
-
-	qmlBridge.ConnectSaveRemoteDaemonInfo(func(daemonAddress string, daemonPort string) {
-		saveRemoteDaemonInfo(daemonAddress, daemonPort)
-	})
-
-	qmlBridge.ConnectResetRemoteDaemonInfo(func() {
-		saveRemoteDaemonInfo(defaultRemoteDaemonAddress, defaultRemoteDaemonPort)
-		qmlBridge.DisplaySettingsRemoteDaemonInfo(defaultRemoteDaemonAddress, defaultRemoteDaemonPort)
-	})
-
-	qmlBridge.ConnectGetFullBalanceAndDisplayInTransferAmount(func(transferFee string) {
-		getFullBalanceAndDisplayInTransferAmount(transferFee)
-	})
-
-	qmlBridge.ConnectLimitDisplayTransactions(func(limit bool) {
-		limitDisplayedTransactions = limit
-		getAndDisplayListTransactions(true)
-	})
-
-	qmlBridge.ConnectGetVersion(func() string {
-		return versionNest
-	})
-
-	qmlBridge.ConnectGetNewVersion(func() string {
-		return newVersionAvailable
-	})
-
-	qmlBridge.ConnectGetNewVersionURL(func() string {
-		return urlNewVersion
-	})
-
-	qmlBridge.ConnectOptimizeWalletWithFusion(func() {
-		go func() {
-			optimizeWalletWithFusion()
-		}()
-	})
-
-	qmlBridge.ConnectSaveAddress(func(name string, address string, paymentID string) {
-		saveAddress(name, address, paymentID)
-	})
-
-	qmlBridge.ConnectFillListSavedAddresses(func() {
-		getSavedAddressesFromDBAndDisplay()
-	})
-
-	qmlBridge.ConnectDeleteSavedAddress(func(dbID int) {
-		deleteSavedAddressFromDB(dbID)
-	})
 }
 
 func startDisplayWalletInfo() {
@@ -483,7 +239,7 @@ func getAndDisplayAddress() {
 
 func getAndDisplayConnectionInfo() {
 
-	syncing, walletBlockCount, knownBlockCount, _, peers, err := walletdmanager.RequestConnectionInfo()
+	syncing, walletBlockCount, knownBlockCount, localDaemonBlockCount, peers, err := walletdmanager.RequestConnectionInfo()
 	if err != nil {
 		log.Info("error getting connection info: ", err)
 		return
@@ -496,16 +252,15 @@ func getAndDisplayConnectionInfo() {
 		walletBlockCountString += " (" + humanize.FormatInteger("#,###.", percentageSync) + "%)"
 	}
 
-	localDaemonBlockCountString := "N/A"
-	// localDaemonBlockCountString := "..."
-	// if localDaemonBlockCount > 1 {
-	// 	localDaemonBlockCountString = humanize.FormatInteger("#,###.", localDaemonBlockCount)
-	// 	// add percentage info if not synced
-	// 	if knownBlockCount-localDaemonBlockCount > 2 {
-	// 		percentageSync := int(math.Floor(100 * (float64(localDaemonBlockCount) / float64(knownBlockCount))))
-	// 		localDaemonBlockCountString += " (" + humanize.FormatInteger("#,###.", percentageSync) + "%)"
-	// 	}
-	// }
+	localDaemonBlockCountString := "..."
+	if localDaemonBlockCount > 1 {
+		localDaemonBlockCountString = humanize.FormatInteger("#,###.", localDaemonBlockCount)
+		// add percentage info if not synced
+		if knownBlockCount-localDaemonBlockCount > 2 {
+			percentageSync := int(math.Floor(100 * (float64(localDaemonBlockCount) / float64(knownBlockCount))))
+			localDaemonBlockCountString += " (" + humanize.FormatInteger("#,###.", percentageSync) + "%)"
+		}
+	}
 
 	knownBlockCountString := "..."
 	if knownBlockCount > 1 {
@@ -772,44 +527,73 @@ func saveAddress(name string, address string, paymentID string) {
 	}
 }
 
-func setupDB(pathToDB string) {
+func exportListTransactions() {
 
-	var err error
-	db, err = sql.Open("sqlite3", pathToDB)
-	if err != nil {
-		log.Fatal("error opening db file. err: ", err)
+	pathToExportFile := "transactions." + walletdmanager.WalletFilename + ".csv"
+
+	if isPlatformDarwin {
+		usr, err := user.Current()
+		if err != nil {
+			log.Fatal(err)
+		}
+		pathToExportFile = usr.HomeDir + "/" + pathToExportFile
+	} else {
+		pathToAppDirectory, _ := filepath.Abs(filepath.Dir(os.Args[0]))
+		if isPlatformWindows {
+			pathToExportFile = pathToAppDirectory + "\\" + pathToExportFile
+		} else {
+			// linux
+			pathToExportFile = pathToAppDirectory + "/" + pathToExportFile
+		}
 	}
 
-	_, err = db.Exec("CREATE TABLE IF NOT EXISTS pathWallet (id INTEGER PRIMARY KEY AUTOINCREMENT,path VARCHAR(64) NULL)")
+	fileExport, err := os.Create(pathToExportFile)
 	if err != nil {
-		log.Fatal("error creating table pathWallet. err: ", err)
+		log.Error("error creating export file. err: ", err)
+		qmlBridge.DisplayErrorDialog("error creating export file", err.Error())
+		return
+	}
+	defer fileExport.Close()
+
+	writer := csv.NewWriter(fileExport)
+
+	records := [][]string{
+		{"Index", "Timestamp", "Readable Timestamp", "Block", "Amount", "Fee", "TxID", "PaymentID", "Confirmations"},
 	}
 
-	_, err = db.Exec("CREATE TABLE IF NOT EXISTS remoteNode (id INTEGER PRIMARY KEY AUTOINCREMENT, useRemote BOOL NOT NULL DEFAULT '1')")
-	if err != nil {
-		log.Fatal("error creating table remoteNode. err: ", err)
+	inversedTransactionIndex := len(transfers)
+
+	for _, transfer := range transfers {
+		indexString := strconv.Itoa(inversedTransactionIndex)
+		timestampString := strconv.FormatInt(transfer.Timestamp.Unix(), 10)
+		readableTimestampString := transfer.Timestamp.Format("2006-01-02 15:04:05")
+		blockString := strconv.Itoa(transfer.Block)
+		amountString := strconv.FormatFloat(transfer.Amount, 'f', -1, 64)
+		feeString := strconv.FormatFloat(transfer.Fee, 'f', 2, 64)
+		txIDString := transfer.TxID
+		paymentIDString := transfer.PaymentID
+		confirmationsString := strconv.Itoa(transfer.Confirmations)
+
+		records = append(records, []string{indexString, timestampString, readableTimestampString, blockString, amountString, feeString, txIDString, paymentIDString, confirmationsString})
+
+		inversedTransactionIndex--
 	}
 
-	_, err = db.Exec("CREATE TABLE IF NOT EXISTS fiatConversion (id INTEGER PRIMARY KEY AUTOINCREMENT, displayFiat BOOL NOT NULL DEFAULT '0', currency VARCHAR(64) DEFAULT 'USD')")
-	if err != nil {
-		log.Fatal("error creating table fiatConversion. err: ", err)
+	for _, record := range records {
+		if err := writer.Write(record); err != nil {
+			log.Error("error writing record to csv. err: ", err)
+			qmlBridge.DisplayErrorDialog("error exporting record", err.Error())
+			return
+		}
 	}
 
-	// table for storing custom node set in settings
-	_, err = db.Exec("CREATE TABLE IF NOT EXISTS remoteNodeInfo (id INTEGER PRIMARY KEY AUTOINCREMENT, address VARCHAR(64), port VARCHAR(64))")
-	if err != nil {
-		log.Fatal("error creating table remoteNodeInfo. err: ", err)
-	}
+	writer.Flush()
 
-	// table for remembering which remote node was lastly selected by the user in the list
-	_, err = db.Exec("CREATE TABLE IF NOT EXISTS selectedRemoteNode (id INTEGER PRIMARY KEY AUTOINCREMENT, name VARCHAR(64), address VARCHAR(64), port INTEGER)")
-	if err != nil {
-		log.Fatal("error creating table selectedRemoteNode. err: ", err)
-	}
-
-	_, err = db.Exec("CREATE TABLE IF NOT EXISTS savedAddresses (id INTEGER PRIMARY KEY AUTOINCREMENT, name VARCHAR(64), address VARCHAR(64), paymentID VARCHAR(64))")
-	if err != nil {
-		log.Fatal("error creating table savedAddresses. err: ", err)
+	if err := writer.Error(); err != nil {
+		log.Error("error writing to the csv file. err: ", err)
+		qmlBridge.DisplayErrorDialog("error writing to the csv file", err.Error())
+	} else {
+		qmlBridge.DisplayInfoDialog("Success", "list of transactions successfully exported to", pathToExportFile)
 	}
 }
 
@@ -820,208 +604,6 @@ func getAndDisplayStartInfoFromDB() {
 	qmlBridge.DisplayUseRemoteNode(getUseRemoteFromDB())
 	qmlBridge.DisplaySettingsValues(getDisplayConversionFromDB())
 	qmlBridge.DisplaySettingsRemoteDaemonInfo(customRemoteDaemonAddress, customRemoteDaemonPort)
-}
-
-func getPathWalletFromDB() string {
-
-	pathToPreviousWallet := ""
-
-	rows, err := db.Query("SELECT path FROM pathWallet ORDER BY id DESC LIMIT 1")
-	if err != nil {
-		log.Fatal("error querying path from pathwallet table. err: ", err)
-	}
-	defer rows.Close()
-	for rows.Next() {
-		path := ""
-		err = rows.Scan(&path)
-		if err != nil {
-			log.Fatal("error reading item from pathWallet table. err: ", err)
-		}
-		pathToPreviousWallet = path
-	}
-
-	return pathToPreviousWallet
-}
-
-func recordPathWalletToDB(path string) {
-
-	stmt, err := db.Prepare(`INSERT INTO pathWallet(path) VALUES(?)`)
-	if err != nil {
-		log.Fatal("error preparing to insert pathWallet into db. err: ", err)
-	}
-	_, err = stmt.Exec(path)
-	if err != nil {
-		log.Fatal("error inserting pathWallet into db. err: ", err)
-	}
-}
-
-func getUseRemoteFromDB() bool {
-
-	rows, err := db.Query("SELECT useRemote FROM remoteNode ORDER BY id DESC LIMIT 1")
-	if err != nil {
-		log.Fatal("error querying useRemote from remoteNode table. err: ", err)
-	}
-	defer rows.Close()
-	for rows.Next() {
-		useRemote := true
-		err = rows.Scan(&useRemote)
-		if err != nil {
-			log.Fatal("error reading item from remoteNode table. err: ", err)
-		}
-		useRemoteNode = useRemote
-	}
-
-	return useRemoteNode
-}
-
-func recordUseRemoteToDB(useRemote bool) {
-
-	stmt, err := db.Prepare(`INSERT INTO remoteNode(useRemote) VALUES(?)`)
-	if err != nil {
-		log.Fatal("error preparing to insert useRemoteNode into db. err: ", err)
-	}
-	_, err = stmt.Exec(useRemote)
-	if err != nil {
-		log.Fatal("error inserting useRemoteNode into db. err: ", err)
-	}
-}
-
-func getRemoteDaemonInfoFromDB() (daemonAddress string, daemonPort string) {
-
-	rows, err := db.Query("SELECT address, port FROM remoteNodeInfo ORDER BY id DESC LIMIT 1")
-	if err != nil {
-		log.Fatal("error querying address and port from remoteNodeInfo table. err: ", err)
-	}
-	defer rows.Close()
-	for rows.Next() {
-		daemonAddress := ""
-		daemonPort := ""
-		err = rows.Scan(&daemonAddress, &daemonPort)
-		if err != nil {
-			log.Fatal("error reading item from remoteNodeInfo table. err: ", err)
-		}
-		customRemoteDaemonAddress = daemonAddress
-		customRemoteDaemonPort = daemonPort
-	}
-
-	return customRemoteDaemonAddress, customRemoteDaemonPort
-}
-
-func recordRemoteDaemonInfoToDB(daemonAddress string, daemonPort string) {
-
-	stmt, err := db.Prepare(`INSERT INTO remoteNodeInfo(address,port) VALUES(?,?)`)
-	if err != nil {
-		log.Fatal("error preparing to insert address and port of remote node into db. err: ", err)
-	}
-	_, err = stmt.Exec(daemonAddress, daemonPort)
-	if err != nil {
-		log.Fatal("error inserting address and port of remote node into db. err: ", err)
-	}
-}
-
-func getSelectedRemoteDaemonFromDB() (daemonAddress string, daemonPort int) {
-
-	rows, err := db.Query("SELECT address, port FROM selectedRemoteNode ORDER BY id DESC LIMIT 1")
-	if err != nil {
-		log.Fatal("error querying address and port from selectedRemoteNode table. err: ", err)
-	}
-	defer rows.Close()
-	for rows.Next() {
-		err = rows.Scan(&daemonAddress, &daemonPort)
-		if err != nil {
-			log.Fatal("error reading item from selectedRemoteNode table. err: ", err)
-		}
-	}
-
-	return daemonAddress, daemonPort
-}
-
-func recordSelectedRemoteDaemonToDB(selectedNode node) {
-
-	stmt, err := db.Prepare(`INSERT INTO selectedRemoteNode(name,address,port) VALUES(?,?,?)`)
-	if err != nil {
-		log.Fatal("error preparing to insert name, address and port of selected remote node into db. err: ", err)
-	}
-	_, err = stmt.Exec(selectedNode.Name, selectedNode.URL, selectedNode.Port)
-	if err != nil {
-		log.Fatal("error inserting name, address and port of selected remote node into db. err: ", err)
-	}
-}
-
-func getDisplayConversionFromDB() bool {
-
-	rows, err := db.Query("SELECT displayFiat FROM fiatConversion ORDER BY id DESC LIMIT 1")
-	if err != nil {
-		log.Fatal("error reading displayFiat from fiatConversion table. err: ", err)
-	}
-	defer rows.Close()
-	for rows.Next() {
-		displayFiat := false
-		err = rows.Scan(&displayFiat)
-		if err != nil {
-			log.Fatal("error reading item from fiatConversion table. err: ", err)
-		}
-		displayFiatConversion = displayFiat
-	}
-
-	return displayFiatConversion
-}
-
-func recordDisplayConversionToDB(displayConversion bool) {
-
-	stmt, err := db.Prepare(`INSERT INTO fiatConversion(displayFiat) VALUES(?)`)
-	if err != nil {
-		log.Fatal("error preparing to insert displayFiat into db. err: ", err)
-	}
-	_, err = stmt.Exec(displayConversion)
-	if err != nil {
-		log.Fatal("error inserting displayFiat into db. err: ", err)
-	}
-}
-
-func getSavedAddressesFromDBAndDisplay() {
-
-	rows, err := db.Query("SELECT id, name, address, paymentID FROM savedAddresses ORDER BY id ASC")
-	if err != nil {
-		log.Fatal("error querying saved addresses from savedAddresses table. err: ", err)
-	}
-	defer rows.Close()
-	for rows.Next() {
-		dbID := 0
-		name := ""
-		address := ""
-		paymentID := ""
-		err = rows.Scan(&dbID, &name, &address, &paymentID)
-		if err != nil {
-			log.Fatal("error reading item from savedAddresses table. err: ", err)
-		}
-		qmlBridge.AddSavedAddressToList(dbID, name, address, paymentID)
-	}
-}
-
-func recordSavedAddressToDB(name string, address string, paymentID string) {
-
-	stmt, err := db.Prepare(`INSERT INTO savedAddresses(name,address,paymentID) VALUES(?,?,?)`)
-	if err != nil {
-		log.Fatal("error preparing to insert saved address into db. err: ", err)
-	}
-	_, err = stmt.Exec(name, address, paymentID)
-	if err != nil {
-		log.Fatal("error inserting saved address into db. err: ", err)
-	}
-}
-
-func deleteSavedAddressFromDB(dbID int) {
-
-	stmt, err := db.Prepare("delete from savedAddresses where id=?")
-	if err != nil {
-		log.Fatal("error preparing to delete saved address from db. err: ", err)
-	}
-
-	_, err = stmt.Exec(dbID)
-	if err != nil {
-		log.Fatal("error deleting saved address from db. err: ", err)
-	}
 }
 
 func openBrowser(url string) bool {
@@ -1063,13 +645,19 @@ func requestRateTRTL() {
 func getAndDisplayListRemoteNodes() {
 	remoteNodes = requestListRemoteNodes()
 
+	// add an item for displaying the custom node in the dropdown list
+	var customNode node
+	customNode.Name = "Custom (change in settings)"
+	customNode.URL = customNode.Name
+	remoteNodes = append(remoteNodes, customNode)
+
 	// to preselect the node previously selected by the user
 	addressPreferedNode, portPreferedNode := getSelectedRemoteDaemonFromDB()
 
 	preferedNodeFound := false
 
 	for index, aNode := range remoteNodes {
-		qmlBridge.AddRemoteNodeToList(aNode.URL)
+		qmlBridge.AddRemoteNodeToList(aNode.Name)
 
 		if addressPreferedNode != "" && aNode.URL == addressPreferedNode && aNode.Port == uint64(portPreferedNode) {
 			indexSelectedRemoteNode = index
