@@ -130,7 +130,7 @@ func RequestStatus(rpcPassword string) (walletBlockCount int, knownBlockCount in
 
 	walletBlockCount = int(responseMap["result"].(map[string]interface{})["blockCount"].(float64))
 	knownBlockCount = int(responseMap["result"].(map[string]interface{})["knownBlockCount"].(float64))
-	localDaemonBlockCount = 0 // int(responseMap["result"].(map[string]interface{})["localDaemonBlockCount"].(float64))
+	localDaemonBlockCount = int(responseMap["result"].(map[string]interface{})["localDaemonBlockCount"].(float64))
 	peerCount = int(responseMap["result"].(map[string]interface{})["peerCount"].(float64))
 
 	return walletBlockCount, knownBlockCount, localDaemonBlockCount, peerCount, nil

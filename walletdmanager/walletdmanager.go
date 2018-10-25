@@ -806,8 +806,7 @@ func RequestConnectionInfo() (syncing string, walletBlockCount int, knownBlockCo
 	if knownBlockCount == 0 {
 		WalletdSynced = false
 		syncing = "Getting block count..." + stringWait
-		//} else if walletBlockCount < knownBlockCount-1 || walletBlockCount > knownBlockCount+10 || localDaemonBlockCount < knownBlockCount-1 || localDaemonBlockCount > knownBlockCount+10 {
-	} else if walletBlockCount < knownBlockCount-1 || walletBlockCount > knownBlockCount+10 {
+	} else if walletBlockCount < knownBlockCount-1 || walletBlockCount > knownBlockCount+10 || localDaemonBlockCount < knownBlockCount-1 || localDaemonBlockCount > knownBlockCount+10 {
 		// second condition handles cases when knownBlockCount is off and smaller than the blockCount
 		WalletdSynced = false
 		syncing = "Syncing..." + stringWait

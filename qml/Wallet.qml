@@ -507,7 +507,7 @@ Rectangle {
         Text {
             id: textListTransactionLimitedDescr
             color: "#cfcfcf"
-            text: "Show transactions:"
+            text: "Show:"
             anchors.left: rectangleListTransactions.left
             anchors.leftMargin: 5
             anchors.top: rectangleListTransactions.bottom
@@ -560,7 +560,7 @@ Rectangle {
             text: "download history"
             anchors.verticalCenter: textListTransactionLimitedDescr.verticalCenter
             anchors.left: textListTransactionAll.right
-            anchors.leftMargin: 50
+            anchors.leftMargin: 42
             height: 25
             enabled: true
 
@@ -1102,7 +1102,7 @@ Rectangle {
             id: textConnectionInfo
             color: "#ffffff"
             text: ""
-            font.pixelSize: 13
+            font.pixelSize: 12
             horizontalAlignment: Text.AlignRight
             anchors.verticalCenter: parent.verticalCenter
             font.family: "Arial"
@@ -1115,12 +1115,12 @@ Rectangle {
             color: "#ffffff"
             text: "Syncing..."
             font.bold: true
-            font.pixelSize: 13
+            font.pixelSize: 12
             horizontalAlignment: Text.AlignRight
             anchors.verticalCenter: parent.verticalCenter
             font.family: "Arial"
             anchors.right: textConnectionInfo.left
-            anchors.rightMargin: 20
+            anchors.rightMargin: 15
         }
     }
 

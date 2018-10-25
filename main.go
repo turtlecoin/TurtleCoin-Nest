@@ -239,7 +239,7 @@ func getAndDisplayAddress() {
 
 func getAndDisplayConnectionInfo() {
 
-	syncing, walletBlockCount, knownBlockCount, _, peers, err := walletdmanager.RequestConnectionInfo()
+	syncing, walletBlockCount, knownBlockCount, localDaemonBlockCount, peers, err := walletdmanager.RequestConnectionInfo()
 	if err != nil {
 		log.Info("error getting connection info: ", err)
 		return
@@ -252,16 +252,15 @@ func getAndDisplayConnectionInfo() {
 		walletBlockCountString += " (" + humanize.FormatInteger("#,###.", percentageSync) + "%)"
 	}
 
-	localDaemonBlockCountString := "N/A"
-	// localDaemonBlockCountString := "..."
-	// if localDaemonBlockCount > 1 {
-	// 	localDaemonBlockCountString = humanize.FormatInteger("#,###.", localDaemonBlockCount)
-	// 	// add percentage info if not synced
-	// 	if knownBlockCount-localDaemonBlockCount > 2 {
-	// 		percentageSync := int(math.Floor(100 * (float64(localDaemonBlockCount) / float64(knownBlockCount))))
-	// 		localDaemonBlockCountString += " (" + humanize.FormatInteger("#,###.", percentageSync) + "%)"
-	// 	}
-	// }
+	localDaemonBlockCountString := "..."
+	if localDaemonBlockCount > 1 {
+		localDaemonBlockCountString = humanize.FormatInteger("#,###.", localDaemonBlockCount)
+		// add percentage info if not synced
+		if knownBlockCount-localDaemonBlockCount > 2 {
+			percentageSync := int(math.Floor(100 * (float64(localDaemonBlockCount) / float64(knownBlockCount))))
+			localDaemonBlockCountString += " (" + humanize.FormatInteger("#,###.", percentageSync) + "%)"
+		}
+	}
 
 	knownBlockCountString := "..."
 	if knownBlockCount > 1 {
