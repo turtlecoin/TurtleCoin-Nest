@@ -663,6 +663,24 @@ func getAndDisplayListRemoteNodes() {
 			indexSelectedRemoteNode = index
 			preferedNodeFound = true
 		}
+
+		// get node fee
+		if index < len(remoteNodes)-1 {
+			// do not do for the last node which is the custom one
+			theNode := aNode // copy the variable so it does not change during our asynchronus request
+			theIndex := index
+			go func() {
+				feeAmount, err := requestFeeOfNode(theNode)
+				nodeNameAndFee := theNode.Name + " (fee: "
+				if err != nil {
+					nodeNameAndFee += "?"
+				} else {
+					nodeNameAndFee += humanize.FtoaWithDigits(feeAmount, 2)
+				}
+				nodeNameAndFee += " TRTL)"
+				qmlBridge.ChangeTextRemoteNode(theIndex, nodeNameAndFee)
+			}()
+		}
 	}
 
 	// if user prefered node not found, select the default one in the list

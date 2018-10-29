@@ -1,5 +1,28 @@
 # Releases
 
+## 0.36
+
+### Release notes
+
+- Button to export history of transactions in csv files.
+- Display local daemon sync status besides wallet sync status.
+- Display names of remote nodes instead of urls in dropdown list.
+- Display nodes fees in list of remote nodes.
+- Move log files into a log folder.
+- Various small improvements.
+- Includes TurtleCoin core 0.8.4 (turtle-service and TurtleCoind) and checkpoints.csv as of 29th of October 2018.
+
+### Sha256
+
+TurtleCoin-Nest-0.36-Windows.zip:
+`a54285fef3863a3bdc03f3e3af2e3abcc88305767239d1f4cb0615c6c0b75613`
+
+TurtleCoin-Nest-0.36-Mac.zip:
+`b370c8fa0b7c98d38ec97ab558794e2c2bee0a759d19c219390422ef8393001a`
+
+TurtleCoin-Nest-0.36-Linux.tar.gz:
+`a9f9ea43a195683b2dcdb85437fb1aa0175fc793ceb05cf0e101dad4d5ba6f11`
+
 ## 0.35
 
 ### Release notes

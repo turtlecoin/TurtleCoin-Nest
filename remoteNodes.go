@@ -17,7 +17,14 @@ type node struct {
 	SSL  bool   `json:"ssl"`
 }
 
+type nodeFeeInfo struct {
+	Address string  `json:"address"`
+	Amount  float64 `json:"amount"`
+}
+
 const urlTurtleCoinRemoteNodes = "https://raw.githubusercontent.com/turtlecoin/turtlecoin-nodes-json/master/turtlecoin-nodes.json"
+const apiPointFee = "/fee"
+const apiPointFee2 = "/feeinfo"
 
 func requestListRemoteNodes() (remoteNodes []node) {
 
@@ -45,4 +52,20 @@ func requestListRemoteNodes() (remoteNodes []node) {
 	}
 
 	return remoteNodes
+}
+
+func requestFeeOfNode(theNode node) (feeValue float64, err error) {
+
+	theNodeFeeInfo := new(nodeFeeInfo)
+	url := "http://" + theNode.URL + ":" + strconv.Itoa(int(theNode.Port))
+	err = getJSONFromHTTPRequest(url+apiPointFee, theNodeFeeInfo)
+
+	if err != nil {
+		err = getJSONFromHTTPRequest(url+apiPointFee2, theNodeFeeInfo)
+		if err != nil {
+			return 0, err
+		}
+	}
+
+	return theNodeFeeInfo.Amount / 100, nil
 }

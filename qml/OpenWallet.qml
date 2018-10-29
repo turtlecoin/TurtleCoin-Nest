@@ -38,7 +38,7 @@ Rectangle {
         id: rectangleRadioButtonRemote
         color: "transparent"
         anchors.left: parent.right
-        anchors.leftMargin: -570
+        anchors.leftMargin: -585
         anchors.top: parent.top
         anchors.topMargin: 20
         width: 400
@@ -82,7 +82,7 @@ Rectangle {
             }
 
             RowLayout {
-                spacing: 25
+                spacing: 17
 
                 OldControls.RadioButton {
                     id: radioButtonUseRemoteNode
@@ -96,14 +96,14 @@ Rectangle {
                 ComboBox {
                     id: comboBoxRemoteNodes
                     currentIndex: 0
-                    implicitWidth: 300
+                    implicitWidth: 330
                     implicitHeight: 30
                     textRole: "text"
 
                     contentItem: Text {
                         text: parent.displayText
                         color: "#cfcfcf"
-                        font.pixelSize: 14
+                        font.pixelSize: 13
                         font.family: "Arial"
                         verticalAlignment: Text.AlignVCenter
                         leftPadding: 10
@@ -122,7 +122,7 @@ Rectangle {
                     delegate: ItemDelegate {
                         width: comboBoxRemoteNodes.width
                         text: model.text
-                        font.pixelSize: 14
+                        font.pixelSize: 13
                         font.family: "Arial"
                         font.bold: comboBoxRemoteNodes.currentIndex == index
                     }
@@ -135,7 +135,11 @@ Rectangle {
                         target: QmlBridge
                         
                         onAddRemoteNodeToList: {
-                            modelListRemoteNodes.append({text: nodeURL})
+                            modelListRemoteNodes.append({text: nodeName})
+                        }
+
+                        onChangeTextRemoteNode: {
+                            modelListRemoteNodes.setProperty(index, "text", newText)
                         }
 
                         onSetSelectedRemoteNode: {
@@ -144,6 +148,19 @@ Rectangle {
                     }
                 }
             }
+        }
+
+        Text {
+            id: textRemoteNodeDescrFee
+            color: "#999999"
+            text: "To encourage running your full node (Local blockchain), many nodes charge a fee per transaction."
+            anchors.bottom: parent.bottom
+            anchors.bottomMargin: 0
+            anchors.left: parent.left
+            anchors.leftMargin: 30
+            font.pixelSize: 11
+            font.family: "Arial"
+            horizontalAlignment: Text.AlignLeft
         }
     }
 
