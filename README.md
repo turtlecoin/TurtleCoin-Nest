@@ -87,7 +87,8 @@ TRTLv3jzutiQwqHL3qFwsu5EVLWesxZr1AFQ4AuMR3SD56n3rkHDkwj79eKwvaiU1nYQWGydKoXM6fXy
     ```
     $ cd $HOME/go/src
     $ git clone https://github.com/turtlecoin/turtle-wallet-go.git TurtleCoin-Nest
-    $ go get github.com/atotto/clipboard github.com/dustin/go-humanize $ github.com/mattn/go-sqlite3 github.com/mcuadros/go-version github.com/mitchellh/go-ps github.com/pkg/errors
+    $ go get -v github.com/atotto/clipboard github.com/dustin/go-humanize github.com/mattn/go-sqlite3 github.com/mcuadros/go-version github.com/mitchellh/go-ps github.com/pkg/errors
+    $ cd TurtleCoin-Nest
     $ qtdeploy build desktop
     ```
 
