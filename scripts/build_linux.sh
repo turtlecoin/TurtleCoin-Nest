@@ -6,7 +6,7 @@ export OUR_BUILD_PATH=`pwd`
 export GOPATH=$HOME/go
 export GOBIN=$GOPATH/bin
 export GOROOT=$HOME/usr/local/go
-export PATH=$HOME/bin:$HOME/.local/bin:$PATH:$GOROOT/bin:$GOBIN
+export PATH=$HOME/bin:$HOME/.local/bin:$GOROOT/bin:$GOBIN:$PATH
 export CGO_CXXFLAGS_ALLOW=".*"
 export CGO_LDFLAGS_ALLOW=".*" 
 export CGO_CFLAGS_ALLOW=".*" 
@@ -25,25 +25,22 @@ else
 fi
 
 # Install dependencies
-echo "Installing Go dependencies..."
-go get -u -v github.com/therecipe/qt/cmd/...
-go get github.com/atotto/clipboard 
-go get github.com/dustin/go-humanize
-go get github.com/mattn/go-sqlite3
-go get github.com/mcuadros/go-version
-go get github.com/mitchellh/go-ps
-go get github.com/pkg/errors
-
-# Go get latest TurtleCoin
-rm -rf turtlecoin*.tar.gz
-curl -s https://api.github.com/repos/turtlecoin/turtlecoin/releases/latest | grep browser_download_url | grep linux | cut -d '"' -f 4 | wget -qi -
-tar xzf turtlecoin*.tar.gz --strip-components 1
+echo -n "Installing Go dependencies... "
+go get -u -v github.com/therecipe/qt/cmd/... >/dev/null
+go get github.com/atotto/clipboard >/dev/null
+go get github.com/dustin/go-humanize >/dev/null
+go get github.com/mattn/go-sqlite3 >/dev/null
+go get github.com/mcuadros/go-version >/dev/null
+go get github.com/mitchellh/go-ps >/dev/null
+go get github.com/pkg/errors >/dev/null
+echo "Done"
 
 # Clean this up and link to where we are building from
 rm -rf $HOME/go/src/TurtleCoin-Nest
 ln -s $OUR_BUILD_PATH $HOME/go/src/TurtleCoin-Nest
 
 # Remove previous builds
+echo -n "Building project... "
 rm -rf deploy
-qtdeploy build desktop && cp TurtleCoind deploy/linux && cp turtle-service deploy/linux
-
+qtdeploy build desktop
+echo "Complete"

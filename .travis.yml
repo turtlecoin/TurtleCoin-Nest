@@ -1,0 +1,44 @@
+sudo: false
+dist: xenial
+
+matrix:
+  include:
+
+  - os: linux
+    addons:
+      apt:
+        packages:
+          - build-essential
+          - libglu1-mesa-dev
+          - libpulse-dev
+          - libglib2.0-dev
+          - libdbusmenu-qt5-dev
+          - libqt*5-dev
+          - qt*5-dev
+    env:
+    - LABEL="linux"
+
+script:
+- export TURTLECOIN_URL=https://api.github.com/repos/turtlecoin/turtlecoin/releases/latest
+
+# Linux build commands
+- if [[ "$LABEL" == "linux" ]]; then ./scripts/build_linux.sh ; fi
+- if [[ "$LABEL" == "linux" ]]; then rm -rf *.tar.gz ; fi
+- if [[ "$LABEL" == "linux" ]]; then export LATEST_TURTLECOIN=`curl -s $TURTLECOIN_URL | grep browser_download_url | grep linux | cut -d '"' -f 4 | cut -d '/' -f 9` ; fi
+- if [[ "$LABEL" == "linux" ]]; then export TURTLECOIN_DOWNLOAD=`curl -s $TURTLECOIN_URL | grep browser_download_url | grep linux | cut -d '"' -f 4` ; fi
+- if [[ "$LABEL" == "linux" ]]; then wget $TURTLECOIN_DOWNLOAD ; fi
+- if [[ "$LABEL" == "linux" ]]; then tar xzf $LATEST_TURTLECOIN --strip-components 1 ; fi
+- if [[ "$LABEL" == "linux" ]]; then cp TurtleCoind turtle-service ./deploy/linux ; fi
+- if [[ "$LABEL" == "linux" ]]; then ls -la ./deploy/linux ; fi
+
+- if [[ "${TRAVIS_TAG}" == "" ]]; then export TRAVIS_TAG=${TRAVIS_COMMIT} ; fi
+- rm -rf TurtleCoin-Nest-${TRAVIS_TAG}
+- mkdir TurtleCoin-Nest-${TRAVIS_TAG}
+- cp LICENSE.md TurtleCoin-Nest-${TRAVIS_TAG}
+- /bin/cp -r ./deploy/${LABEL}/* ./TurtleCoin-Nest-${TRAVIS_TAG}
+- tar cvfz TurtleCoin-Nest-${TRAVIS_TAG}-${LABEL}.tar.gz TurtleCoin-Nest-${TRAVIS_TAG}/
+- rm -rf builds
+- mkdir builds
+- cp TurtleCoin-Nest-${TRAVIS_TAG}-${LABEL}.tar.gz builds
+- ls -la ./builds
+
