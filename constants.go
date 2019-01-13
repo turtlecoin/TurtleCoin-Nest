@@ -14,8 +14,8 @@ const (
 	numberTransactionsToDisplay = 20
 
 	// default remote node
-	defaultRemoteDaemonAddress = "public.turtlenode.io"
+	defaultRemoteDaemonAddress = "public.turtlenode.online"
 	defaultRemoteDaemonPort    = "11898"
-	defaultRemoteDaemonName    = "public.turtlenode.io"
+	defaultRemoteDaemonName    = "public.turtlenode.online"
 	defaultRemoteDaemonSSL     = false
 )
