@@ -1,5 +1,12 @@
 # Releases
 
+## 0.37
+
+### Release notes
+
+- Updated to patch for CLI argument discrepancies in turtle-service
+- Includes TurtleCoin core 0.12.0 (turtle-service and TurtleCoind) and checkpoints.csv as of 12th of January 2019.
+
 ## 0.36
 
 ### Release notes
