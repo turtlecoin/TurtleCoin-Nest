@@ -42,7 +42,7 @@ Click Settings | Settings screen appears
 Close Settings | Settings screen disappears
 Settings: Enable display in USD -> Close Nest -> Reopen | Setting is still enabled
 Display in USD enabled -> Open a wallet| Balance is displayed in USD (under TRTL balance)
-Display in USD enabled -> type an amount to be transfered| Value is displayed in USD
+Display in USD enabled -> type an amount to be transferred| Value is displayed in USD
 Settings: change remote node address and port -> click save -> close and reopen Nest | new address in remote node radio button and in settings
 Settings: click remote node reset to default -> close and reopen Nest | default address in remote node radio button and in settings
 Win only: open a wallet | no black window (turtle-service) should open next to the nest window
