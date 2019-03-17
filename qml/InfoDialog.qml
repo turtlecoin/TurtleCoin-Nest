@@ -17,11 +17,11 @@ Dialog {
     standardButtons: StandardButton.Ok
     width: 900
 
-    property var addressDev: "TRTLv3jzutiQwqHL3qFwsu5EVLWesxZr1AFQ4AuMR3SD56n3rkHDkwj79eKwvaiU1nYQWGydKoXM6fXyiiGKsPDnVCNXzNdusxx"
-    property var websiteChat: "http://chat.turtlecoin.lol"
-    property var versionNest: ""
-    property var newVersionNestAvailable: ""
-    property var urlNewVersionNest: ""
+    property string addressDev: "TRTLv3jzutiQwqHL3qFwsu5EVLWesxZr1AFQ4AuMR3SD56n3rkHDkwj79eKwvaiU1nYQWGydKoXM6fXyiiGKsPDnVCNXzNdusxx"
+    property string websiteChat: "http://chat.turtlecoin.lol"
+    property string versionNest: ""
+    property string newVersionNestAvailable: ""
+    property string urlNewVersionNest: ""
 
     Text {
         id: textNest

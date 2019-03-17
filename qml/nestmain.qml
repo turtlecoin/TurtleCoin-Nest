@@ -13,9 +13,9 @@ import QtQuick.Layouts 1.1
 ApplicationWindow {
     id: window
 
-    property var windowWidth: 1060
-    property var windowHeight: 755
-    property var minWindowHeight: 500
+    property int windowWidth: 1060
+    property int windowHeight: 755
+    property int minWindowHeight: 500
 
     Material.accent: Material.Grey
 

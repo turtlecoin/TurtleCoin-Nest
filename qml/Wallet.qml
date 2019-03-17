@@ -608,11 +608,11 @@ Rectangle {
         anchors.top: rectangleHistory.top
         anchors.topMargin: 0
 
-        property var transferRecipient: ""
-        property var transferAmount: ""
-        property var transferPaymentID: ""
-        property var transferFee: ""
-        property var nodeFeeValue: "0"
+        property string transferRecipient: ""
+        property string transferAmount: ""
+        property string transferPaymentID: ""
+        property string transferFee: ""
+        property string nodeFeeValue: "0"
 
         Text {
             id: textTransferTitle
