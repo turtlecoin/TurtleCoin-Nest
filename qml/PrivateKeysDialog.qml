@@ -16,10 +16,10 @@ Dialog {
     standardButtons: StandardButton.Ok
     width: 900
 
-    property var walletFilename: ""
-    property var walletPrivateViewKey: ""
-    property var walletPrivateSpendKey: ""
-    property var walletAddress: ""
+    property string walletFilename: ""
+    property string walletPrivateViewKey: ""
+    property string walletPrivateSpendKey: ""
+    property string walletAddress: ""
 
     Text {
         id: textDescriptionPrivateKeys

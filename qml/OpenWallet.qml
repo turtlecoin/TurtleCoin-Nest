@@ -1148,7 +1148,7 @@ Rectangle {
         width: 250
         height: 120
 
-        property var walletIsImporting: false
+        property bool walletIsImporting: false
 
         Text {
             id: textDescriptionConfirmPassword
