@@ -23,7 +23,7 @@ Dialog {
 
     Text {
         id: textDescriptionPrivateKeys
-        text: "See below your public address and your 2 private (secret) keys. The 2 private keys can be used to re-generate your wallet.\nCopy them both and keep them in a safe place.\nIf you lose them and lose your password or wallet file, you will not be able to recover your TRTLs.\nIf anybody has access to those keys, he can steal your TRTLs."
+        text: "See below your public address and your 2 private (secret) keys. The 2 private keys can be used to re-generate your wallet.\nCopy them both and keep them in a safe place.\nIf you lose them and lose your password or wallet file, you will not be able to recover your TRTLs.\nIf anybody has access to those keys, they can steal your TRTLs."
         font.family: "Arial"
         font.pixelSize: 13
     }

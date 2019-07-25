@@ -95,6 +95,36 @@ TRTLv3jzutiQwqHL3qFwsu5EVLWesxZr1AFQ4AuMR3SD56n3rkHDkwj79eKwvaiU1nYQWGydKoXM6fXy
 1. The app folder is in deploy/linux/
 1. Include the latest _turtle-service_ and _TurtleCoind_ builds in the app folder
 
+
+### Alternative Linux Build
+
+1. Clone this repo
+```bash
+$ git clone https://github.com/turtlecoin/turtle-wallet-go/
+```
+
+2. Enter the folder
+```bash
+$ cd turtle-wallet-go
+```
+
+3. Run the script
+```bash
+$ sudo chmod +x build-linux.sh && ./$_
+```
+
+4. The app folder is in deploy/linux/
+```bash
+$ cd deploy/linux && ls
+lib    plugins    qml    turtle-wallet-go
+```
+
+5. Include the latest _turtle-service_ and _TurtleCoind_ builds in the app folder - Folder should look like this
+```bash
+$ ls
+lib    plugins    qml    TurtleCoind    turtle-service    turtle-wallet-go
+```
+
 ### Windows - Mac
 
 1. Install Go (https://golang.org/doc/install)
