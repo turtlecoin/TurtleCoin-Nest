@@ -492,7 +492,6 @@ Rectangle {
                             transactionPaymentIDValue: paymentID,
                             transactionIDValue: transactionID,
                             transactionConfirmationsValue: confirmations,
-                            transactionTimeValue: time,
                             transactionNumberValue: number
                         })
                     }
