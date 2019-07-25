@@ -22,7 +22,7 @@ Dialog {
 
     Text {
         id: textDescription
-        text: "See below your public address and your backup seed (a sentence of 25 words).\nThe seed can be used to re-generate your wallet. Copy it and keep it in a safe place.\nIf you lose your seed and lose your password or wallet file, you will not be able to recover your TRTLs.\nIf anybody has access to that seed, he can steal your TRTLs."
+        text: "See below your public address and your backup seed (a sentence of 25 words).\nThe seed can be used to re-generate your wallet. Copy it and keep it in a safe place.\nIf you lose your seed and lose your password or wallet file, you will not be able to recover your TRTLs.\nIf anybody has access to that seed, they can steal your TRTLs."
         font.family: "Arial"
         font.pixelSize: 13
     }
