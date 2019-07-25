@@ -19,10 +19,13 @@ ApplicationWindow {
 
     Material.accent: Material.Grey
 
-    width: windowWidth
     height: windowHeight
-    minimumWidth: windowWidth
     minimumHeight: minWindowHeight
+    maximumHeight : windowHeight
+    width: windowWidth
+    minimumWidth: windowWidth
+    maximumWidth : windowWidth
+
     color: "#333333"
     title: "TurtleCoin Nest"
     visible: true
