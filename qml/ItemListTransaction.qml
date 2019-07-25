@@ -52,25 +52,12 @@ Item {
     }
     
     Text {
-        id: transactionTime
-        color: "#cfcfcf"
-        text: transactionTimeValue
-        anchors.right: transactionConfirmations.left
-        anchors.rightMargin: 15
-        anchors.verticalCenter: transactionAmount.verticalCenter
-        horizontalAlignment: Text.AlignRight
-        verticalAlignment: Text.AlignVCenter
-        font.pixelSize: 12
-        font.family: "Arial"
-    }
-    
-    Text {
         id: transactionConfirmations
         color: "#cfcfcf"
         text: transactionConfirmationsValue
         anchors.right: parent.right
         anchors.rightMargin: 11
-        anchors.verticalCenter: transactionTime.verticalCenter
+    //    anchors.verticalCenter: transactionTime.verticalCenter
         horizontalAlignment: Text.AlignRight
         verticalAlignment: Text.AlignVCenter
         font.pixelSize: 12
