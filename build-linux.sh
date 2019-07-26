@@ -1,6 +1,6 @@
 #!/bin/sh
 
-sudo apt-get -y install build-essential libglu1-mesa-dev libpulse-dev libglib2.0-dev libdbusmenu-qt5-dev libqt*5-dev qt*5-dev
+sudo apt-get -y install build-essential libglu1-mesa-dev libpulse-dev libglib2.0-dev libdbusmenu-qt5-dev libqt*5-dev qt*5-dev xclip
 
 export OUR_BUILD_PATH=`pwd`
 export GOPATH=$HOME/go
